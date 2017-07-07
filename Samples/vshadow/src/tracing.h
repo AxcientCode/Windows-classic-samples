@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// Copyright © Microsoft Corporation. All rights reserved.
+// Copyright © 2004 Microsoft Corporation. All rights reserved.
 // 
 //  This file may contain preliminary information or inaccuracies, 
 //  and may not correctly represent any associated Microsoft 

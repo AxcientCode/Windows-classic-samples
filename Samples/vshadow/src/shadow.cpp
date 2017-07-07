@@ -1,23 +1,19 @@
 /////////////////////////////////////////////////////////////////////////
-// Copyright © Microsoft Corporation. All rights reserved.
-//
-//  This file may contain preliminary information or inaccuracies,
-//  and may not correctly represent any associated Microsoft
-//  Product as commercially released. All Materials are provided entirely
-//  “AS IS.” To the extent permitted by law, MICROSOFT MAKES NO
-//  WARRANTY OF ANY KIND, DISCLAIMS ALL EXPRESS, IMPLIED AND STATUTORY
-//  WARRANTIES, AND ASSUMES NO LIABILITY TO YOU FOR ANY DAMAGES OF
-//  ANY TYPE IN CONNECTION WITH THESE MATERIALS OR ANY INTELLECTUAL PROPERTY IN THEM.
-//
+// Copyright © 2004 Microsoft Corporation. All rights reserved.
+// 
+//  This file may contain preliminary information or inaccuracies, 
+//  and may not correctly represent any associated Microsoft 
+//  Product as commercially released. All Materials are provided entirely 
+//  “AS IS.” To the extent permitted by law, MICROSOFT MAKES NO 
+//  WARRANTY OF ANY KIND, DISCLAIMS ALL EXPRESS, IMPLIED AND STATUTORY 
+//  WARRANTIES, AND ASSUMES NO LIABILITY TO YOU FOR ANY DAMAGES OF 
+//  ANY TYPE IN CONNECTION WITH THESE MATERIALS OR ANY INTELLECTUAL PROPERTY IN THEM. 
+// 
 
 
 // Main header
 #include "stdafx.h"
 
-bool OSVersionCheck()
-{
-    return false;
-}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -32,26 +28,18 @@ bool OSVersionCheck()
 //
 extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
 {
-    (void)HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
-
     FunctionTracer ft(DBG_INFO);
     CommandLineParser obj;
 
     try
     {
-        if (OSVersionCheck())
-        {
-            ft.WriteLine(L"This version of vshadow is not supported on this version of Windows." );
-            return 2;
-        }
-
         ft.WriteLine(
             L"\n"
-            L"VSHADOW.EXE 3.0 - Volume Shadow Copy sample client.\n"
+            L"VSHADOW.EXE 2.2 - Volume Shadow Copy sample client\n"
             L"Copyright (C) 2005 Microsoft Corporation. All rights reserved.\n"
             L"\n"
             );
-
+        
         // Build the argument vector 
         vector<wstring> arguments;
         for(int i = 1; i < argc; i++)
@@ -70,12 +58,12 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
     {
         // We should never get here (unless we have a bug)
         _ASSERTE(false);
-        ft.WriteLine(L"ERROR: STL Exception caught: %S", ex.what());
+        ft.WriteLine(L"ERROR: STL Exception catched: %S", ex.what());
         return 2;
     }
     catch(HRESULT hr)
     {
-        ft.Trace(DBG_INFO, L"HRESULT Error caught: 0x%08lx", hr);
+        ft.Trace(DBG_INFO, L"HRESULT Error catched: 0x%08lx", hr);
         return 2;
     }
 }
@@ -117,19 +105,11 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
     // The backup components document
     wstring xmlBackupComponentsDoc;
 
-    // Resync destination
-    wstring wsSnapIdDest;
-
-    // Break flags for BreakSnapshotSet, used by -bex
-    DWORD dwBreakExFlags = 0;
-
-    DWORD dwResyncFlags = 0;
-
     // Enumerate each argument
     for(unsigned argIndex = 0; argIndex < arguments.size(); argIndex++)
     {
         //
-        //  Flags
+        //  Flags 
         //
 
 #ifdef VSS_SERVER
@@ -151,22 +131,6 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_bWithWriters = false;
 
             // The final dwContext needs to be updated based on m_bPersistent and m_bWithWriters
-            continue;
-        }
-
-        // Check for the no-writers flag
-        if (MatchArgument(arguments[argIndex], L"nar"))
-        {
-            ft.WriteLine(L"(Option: No-auto-recovery option detected)");
-            dwContext |= VSS_VOLSNAP_ATTR_NO_AUTORECOVERY;
-            continue;
-        }
-
-        // Check for the TxF recovery flag
-        if (MatchArgument(arguments[argIndex], L"tr"))
-        {
-            ft.WriteLine(L"(Option: TxF-recover option detected)");
-            dwContext |= VSS_VOLSNAP_ATTR_TXF_RECOVERY;
             continue;
         }
 
@@ -208,19 +172,6 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             dwContext = VSS_CTX_CLIENT_ACCESSIBLE;
             continue;
         }
-
-#ifdef TEST_FEATURES
-        // Check for the delayed post snapshot flag
-        if (MatchArgument(arguments[argIndex], L"dps"))
-        {
-            ft.WriteLine(L"(Option: Delayed post-snapshot option detected)");
-            dwContext |= VSS_VOLSNAP_ATTR_DELAYED_POSTSNAPSHOT;
-
-            // The final dwContext needs to be updated based on m_bPersistent and m_bWithWriters
-            continue;
-        }
-#endif
-
 
 #endif
 
@@ -282,38 +233,6 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             continue;
         }
 
-
-        // Checks for BreakEx flags
-
-        if (MatchArgument(arguments[argIndex], L"mask"))
-        {
-            ft.WriteLine(L"(Option: Mask shadow copy luns)");
-            dwBreakExFlags |= VSS_BREAKEX_FLAG_MASK_LUNS;
-            continue;
-        }
-
-        if (MatchArgument(arguments[argIndex], L"rw"))
-        {
-            ft.WriteLine(L"(Option: make readwrite)");
-            dwBreakExFlags |= VSS_BREAKEX_FLAG_MAKE_READ_WRITE;
-            continue;
-        }
-
-        if (MatchArgument(arguments[argIndex], L"forcerevert"))
-        {
-            ft.WriteLine(L"(Option: force disk identity revert)");
-            dwBreakExFlags |= VSS_BREAKEX_FLAG_REVERT_IDENTITY_ALL;
-            continue;
-        }
-
-        if (MatchArgument(arguments[argIndex], L"norevert"))
-        {
-            ft.WriteLine(L"(Option: no disk identity revert)");
-            dwBreakExFlags |= VSS_BREAKEX_FLAG_REVERT_IDENTITY_NONE;
-            continue;
-        }
-
-
         //
         //  Operations 
         //
@@ -326,7 +245,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"q"))
         {
             ft.WriteLine(L"(Option: Query all shadow copies)");
-
+            
             // Initialize the VSS client
             m_vssClient.Initialize(VSS_CTX_ALL);
 
@@ -341,7 +260,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"qx", id))
         {
             ft.WriteLine(L"(Option: Query shadow copy set)");
-
+            
             GUID queryingSnapshotSetID = WString2Guid(id);
 
             // Initialize the VSS client
@@ -427,7 +346,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"wm"))
         {
             ft.WriteLine(L"(Option: List writer metadata)");
-
+            
             // Initialize the VSS client
             dwContext = UpdateFinalContext(dwContext);
             m_vssClient.Initialize(dwContext);
@@ -445,7 +364,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"wm2"))
         {
             ft.WriteLine(L"(Option: List extended writer metadata)");
-
+            
             // Initialize the VSS client
             dwContext = UpdateFinalContext(dwContext);
             m_vssClient.Initialize(dwContext);
@@ -459,25 +378,11 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             return 0;
         }
 
-        if (MatchArgument(arguments[argIndex], L"wm3"))
-        {
-            ft.WriteLine(L"(Option: List writer metadata in XML)");
-
-            // Initialize the VSS client
-            dwContext = UpdateFinalContext(dwContext);
-            m_vssClient.Initialize(dwContext);
-
-            // Gather writer metadata
-            m_vssClient.GatherWriterMetadataToScreen();
-
-            return 0;
-        }
-
         // List the writer state
         if (MatchArgument(arguments[argIndex], L"ws"))
         {
             ft.WriteLine(L"(Option: List writer status)");
-
+            
             // Initialize the VSS client
             dwContext = UpdateFinalContext(dwContext);
             m_vssClient.Initialize(dwContext);
@@ -507,7 +412,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             return 0;
         }
 
-        // Revert a volume to the specified shadow copy
+		// Revert a volume to the specified shadow copy
         if (MatchArgument(arguments[argIndex], L"revert", id))
         {
             ft.WriteLine(L"(revert a shadow copy)");
@@ -525,7 +430,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"b", id))
         {
             ft.WriteLine(L"(Option: Break shadow copy set)");
-
+            
             VSS_ID breakingSnapshotSetID = WString2Guid(id);
 
             // Initialize the VSS client
@@ -541,7 +446,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"bw", id))
         {
             ft.WriteLine(L"(Option: Break shadow copy set as writable)");
-
+            
             VSS_ID breakingSnapshotSetID = WString2Guid(id);
 
             // Initialize the VSS client
@@ -561,15 +466,14 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
                 if (m_bWaitForFinish)
                 {
                     ft.WriteLine(L"\nPress <ENTER> to make the volumes writable...");
-#pragma warning(suppress: 6031)  //Intentionally ignore the return value of getchar()
-                    getchar();  
+                    getchar();
                     m_bWaitForFinish = false;
                 }
 
                 // Make the volumes read-write
                 ft.WriteLine(L"- Making shadow copy devices from " WSTR_GUID_FMT L" read-write...", 
                     GUID_PRINTF_ARG(breakingSnapshotSetID));
-
+                
                 m_vssClient.MakeVolumesReadWrite(volumeList);
             }
             else
@@ -577,23 +481,6 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
                 // Break and make them read-write
                 m_vssClient.BreakSnapshotSet(breakingSnapshotSetID, true);
             }
-
-            return 0;
-        }
-
-
-        // Break this shadow copy set using BreakSnapshotSetEx
-        if (MatchArgument(arguments[argIndex], L"bex", id))
-        {
-            ft.WriteLine(L"(Option: Break shadow copy set using BreakSnapshotSetEx)");
-
-            VSS_ID breakingSnapshotSetID = WString2Guid(id);
-
-            // Initialize the VSS client
-            m_vssClient.Initialize(VSS_CTX_ALL);
-
-            // List all shadow copies in the set
-            m_vssClient.BreakSnapshotSetEx(breakingSnapshotSetID, dwBreakExFlags);
 
             return 0;
         }
@@ -668,14 +555,13 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 
             return 0;
         }
-
 #endif
 
         // Perform a restore
         if (MatchArgument(arguments[argIndex], L"r", xmlBackupComponentsDoc))
         {
             ft.WriteLine(L"(Option: Perform a restore)");
-
+            
             // Reading the backup components document
             wstring xmlDoc = ReadFileContents(xmlBackupComponentsDoc);
             ft.Trace(DBG_INFO, L"XML document: '%s'", xmlDoc.c_str());
@@ -733,7 +619,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.CheckSelectedWriterStatus();
 
             ft.WriteLine(L"\nRestore done.");
-
+            
             return 0;
         }
 
@@ -741,7 +627,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         if (MatchArgument(arguments[argIndex], L"rs", xmlBackupComponentsDoc))
         {
             ft.WriteLine(L"(Option: Perform a Simulated restore)");
-
+            
             // Reading the backup components document
             wstring xmlDoc = ReadFileContents(xmlBackupComponentsDoc);
             ft.Trace(DBG_INFO, L"XML document: '%s'", xmlDoc.c_str());
@@ -765,101 +651,37 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.SelectComponentsForRestore(excludedWriterList, includedWriterList);
 
             ft.WriteLine(L"\nRestore simulation done.");
-
-            return 0;
-        }
-
-        // Add a resync pair
-        if (MatchArgument(arguments[argIndex], L"addresync", wsSnapIdDest))
-        {
-
-            vector<wstring> resyncArgsArray = SplitWString(wsSnapIdDest, L',');
-
-            VSS_ID snapshotID   = WString2Guid(resyncArgsArray[0]);
-
-            wstring wsDest;
-
-            if (resyncArgsArray.size() == 1)   
-                ft.WriteLine(L"(Option: Add snapshot Id for resync to original volume location specified in BCD)");
-            else if (resyncArgsArray.size() == 2)
-            {
-                ft.WriteLine(L"(Option: Add snapshot Id for resync to location: %s)", resyncArgsArray[1].c_str());
-                wsDest = resyncArgsArray[1];
-            }
-            else
-                throw(E_INVALIDARG);
-
-            m_vssClient.AddResyncSet(snapshotID, wsDest);
-
-            continue;
-
-        }
-
-        // Set disk signature flag
-        if (MatchArgument(arguments[argIndex], L"revertsig"))
-        {
-            ft.WriteLine(L"(Option: Resync will revert destination to the original disk's signature)");
-            dwResyncFlags |= VSS_RECOVERY_REVERT_IDENTITY_ALL;
-            continue;
-        }
-
-        // Set NoVolCheck flag
-        if (MatchArgument(arguments[argIndex], L"novolcheck"))
-        {
-            ft.WriteLine(L"(Option: novolcheck flag used. Resync will not check for unselected volumes)");
-            dwResyncFlags |= VSS_RECOVERY_NO_VOLUME_CHECK;
-            continue;
-        }
-        
-        // Perform hardware resync
-        if (MatchArgument(arguments[argIndex], L"resync", xmlBackupComponentsDoc))
-        {
-            wstring     xmlDoc;
-
-            if (xmlBackupComponentsDoc.size())
-            {
-                if (dwResyncFlags & VSS_RECOVERY_REVERT_IDENTITY_ALL)
-                    ft.WriteLine(L"Resyncing using source signature as the final disk signature");
-                else
-                    ft.WriteLine(L"Resyncing using target signature as the final disk signature");
-            }
-            else
-                throw(E_INVALIDARG);
             
-            xmlDoc = ReadFileContents(xmlBackupComponentsDoc);
-
-            m_vssClient.Initialize(VSS_CTX_ALL, xmlDoc, true);
-            m_vssClient.DoResync(dwResyncFlags);
-
             return 0;
         }
 
-        // Check if the arguments are volumes or file share paths. If yes, try to create the shadow copy set 
-        if (IsVolume(arguments[argIndex]) || IsUNCPath((VSS_PWSZ)arguments[argIndex].c_str()))
+
+        // Check if the arguments are volumes. If yes, try to create the shadow copy set 
+        if (IsVolume(arguments[argIndex]))
         {
             ft.WriteLine(L"(Option: Create shadow copy set)");
-
+            
             ft.Trace(DBG_INFO, L"\nAttempting to create a shadow copy set... (volume %s was added as parameter)", arguments[argIndex].c_str());
-
+            
             // Make sure that all the arguments are volumes
             vector<wstring> volumeList; 
-            volumeList.push_back(GetUniqueVolumeNameForPath(arguments[argIndex], true));
+            volumeList.push_back(GetUniqueVolumeNameForPath(arguments[argIndex]));
 
             // Process the rest of the arguments
             for(unsigned i = argIndex + 1; i < arguments.size(); i++)
             {
-                if (!(IsVolume(arguments[i]) || IsUNCPath((VSS_PWSZ)arguments[i].c_str())))
+                if (!IsVolume(arguments[i]))
                 {
                     // No match. Print an error and the usage
                     ft.WriteLine(L"\nERROR: invalid parameters %s", GetCommandLine());
-                    ft.WriteLine(L"- Parameter %s is expected to be a volume or a file share path!  (shadow copy creation is assumed)", arguments[i].c_str());
+                    ft.WriteLine(L"- Parameter %s is expected to be a volume!  (shadow copy creation is assumed)", arguments[i].c_str());
                     ft.WriteLine(L"- Example: VSHADOW C:");
                     PrintUsage();
                     return 1;
                 }
 
                 // Add the volume to the list
-                volumeList.push_back(GetUniqueVolumeNameForPath(arguments[i], true));
+                volumeList.push_back(GetUniqueVolumeNameForPath(arguments[i]));
             }
             
             // Initialize the VSS client
@@ -874,35 +696,31 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
                 includedWriterList
                 );
 
-            // Execute BackupComplete, except in fast snapshot creation
-            if ((dwContext & VSS_VOLSNAP_ATTR_DELAYED_POSTSNAPSHOT) == 0)
+            try
             {
-                try
-                {
-                    // Generate management scripts if needed
-                    if (stringFileName.length() > 0)
-                        m_vssClient.GenerateSetvarScript(stringFileName);
+                // Generate management scripts if needed
+                if (stringFileName.length() > 0)
+                    m_vssClient.GenerateSetvarScript(stringFileName);
 
-                    // Executing the custom command if needed
-                    if (execCommand.length() > 0)
-                        ExecCommand(execCommand);
+                // Executing the custom command if needed
+                if (execCommand.length() > 0)
+                    ExecCommand(execCommand);
 
-                }
-                catch(HRESULT)
-                {
-                    // Mark backup failure and exit
-                    if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
-                        m_vssClient.BackupComplete(false);
-
-                    throw;
-                }
-
-                // Complete the backup
-                // Note that this will notify writers that the backup is succesful! 
-                // (which means eventually log truncation)
-                if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
-                    m_vssClient.BackupComplete(true);
             }
+            catch(HRESULT)
+            {
+                // Mark backup failure and exit
+                if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
+                    m_vssClient.BackupComplete(false);
+
+                throw;
+            }
+
+            // Complete the backup
+            // Note that this will notify writers that the backup is succesful! 
+            // (which means eventually log truncation)
+            if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
+                m_vssClient.BackupComplete(true);
 
             ft.WriteLine(L"\nSnapshot creation done.");
             
@@ -928,11 +746,11 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 bool CommandLineParser::MatchArgument(wstring argument, wstring optionPattern)
 {
     FunctionTracer ft(DBG_INFO);
-
+    
     ft.Trace(DBG_INFO, L"Matching Arg: '%s' with '%s'\n", argument.c_str(), optionPattern.c_str());
-
+    
     bool retVal = (IsEqual(argument, wstring(L"/") + optionPattern) || IsEqual(argument, wstring(L"-") + optionPattern) );
-
+    
     ft.Trace(DBG_INFO, L"Return: %s\n", BOOL2TXT(retVal));
     return retVal;
 }
@@ -1000,8 +818,6 @@ void CommandLineParser::PrintUsage()
         L"  -?                 - Displays the usage screen\n"
         L"  -p                 - Manages persistent shadow copies\n"
         L"  -nw                - Manages no-writer shadow copies\n"
-        L"  -nar               - Creates shadow copies with no auto-recovery\n"
-        L"  -tr                - Creates TxF-recovered shadow copies\n"
         L"  -ad                - Creates differential HW shadow copies\n"
         L"  -ap                - Creates plex HW shadow copies\n"
         L"  -scsf              - Creates Shadow Copies for Shared Folders (Client Accessible)\n"
@@ -1009,54 +825,38 @@ void CommandLineParser::PrintUsage()
         L"  -bc={file.xml}     - Generates the backup components doc for non-transportable shadow set.\n"
         L"  -wi={Writer Name}  - Verify that a writer/component is included\n"
         L"  -wx={Writer Name}  - Exclude a writer/component from set creation or restore\n"
-        L"  -mask              - BreakSnapshotSetEx flag: Mask shadow copy luns from system on break.\n"
-        L"  -rw                - BreakSnapshotSetEx flag: Make shadow copy luns read-write on break.\n"
-        L"  -forcerevert       - BreakSnapshotSetEx flag: Complete operation only if all disk signatures revertable.\n"
-        L"  -norevert          - BreakSnapshotSetEx flag: Do not revert disk signatures.\n"
-        L"  -revertsig         - Revert to the original disk's signature during resync.\n"
-        L"  -novolcheck        - Ignore volume check during resync. Unselected volumes will be overwritten.\n"
         L"  -script={file.cmd} - SETVAR script creation\n"
         L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
         L"  -wait              - Wait before program termination or between shadow set break and make-it-write\n"
         L"  -tracing           - Runs VSHADOW.EXE with enhanced diagnostics\n"
-        L"\n" );
-    ft.WriteLine(
+        L"\n"
         L"List of commands:\n"
-        L"  {volume list}                   - Creates a shadow set on these volumes\n"
-        L"  -ws                             - List writer status\n"
-        L"  -wm                             - List writer summary metadata\n"
-        L"  -wm2                            - List writer detailed metadata\n"
-        L"  -wm3                            - List writer detailed metadata in raw XML format\n"
-        L"  -q                              - List all shadow copies in the system\n"
-        L"  -qx={SnapSetID}                 - List all shadow copies in this set\n"
-        L"  -s={SnapID}                     - List the shadow copy with the given ID\n"
-        L"  -da                             - Deletes all shadow copies in the system\n"
-        L"  -do={volume}                    - Deletes the oldest shadow of the specified volume\n"
-        L"  -dx={SnapSetID}                 - Deletes all shadow copies in this set\n"
-        L"  -ds={SnapID}                    - Deletes this shadow copy\n"
-        L"  -i={file.xml}                   - Transportable shadow copy import\n"
-        L"  -b={SnapSetID}                  - Break the given shadow set into read-only volumes\n"
-        L"  -bw={SnapSetID}                 - Break the shadow set into writable volumes\n"
-        L"  -bex={SnapSetID}                - Break using BreakSnapshotSetEx and flags, see options for available flags\n"
-        L"  -el={SnapID},dir                - Expose the shadow copy as a mount point\n"
-        L"  -el={SnapID},drive              - Expose the shadow copy as a drive letter\n"
-        L"  -er={SnapID},share              - Expose the shadow copy as a network share\n"
-        L"  -er={SnapID},share,path         - Expose a child directory from the shadow copy as a share\n"
-        L"  -r={file.xml}                   - Restore based on a previously-generated Backup Components document\n"
-        L"  -rs={file.xml}                  - Simulated restore based on a previously-generated Backup Components doc\n"\
-        L"  -revert={SnapID}                - Revert a volume to the specified shadow copy\n"
-        L"  -addresync={SnapID},drive       - Resync the given shadow copy to the specified volume\n"
-        L"  -addresync={SnapID}             - Resync the given shadow copy to it's original volume\n"
-        L"  -resync=bcd.xml                 - Perform Resync using the specified BCD\n"
-        L"\n" );
-    ft.WriteLine(
+        L"  {volume list}      - Creates a shadow set on these volumes\n"
+        L"  -ws                - List writer status\n"
+        L"  -wm                - List writer summary metadata\n"
+        L"  -wm2               - List writer detailed metadata\n"
+        L"  -q                 - List all shadow copies in the system\n"
+        L"  -qx={SnapSetID}    - List all shadow copies in this set\n"
+        L"  -s={SnapID}        - List the shadow copy with the given ID\n"
+        L"  -da                - Deletes all shadow copies in the system\n"
+        L"  -do={volume}       - Deletes the oldest shadow of the specified volume\n"
+        L"  -dx={SnapSetID}    - Deletes all shadow copies in this set\n"
+        L"  -ds={SnapID}       - Deletes this shadow copy\n"
+        L"  -i={file.xml}      - Transportable shadow copy import\n"
+        L"  -b={SnapSetID}     - Break the given shadow set into read-only volumes\n"
+        L"  -bw={SnapSetID}    - Break the shadow set into writable volumes\n"
+        L"  -el={SnapID},dir   - Expose the shadow copy as a mount point\n"
+        L"  -el={SnapID},drive - Expose the shadow copy as a drive letter\n"
+        L"  -er={SnapID},share - Expose the shadow copy as a network share\n"
+        L"  -er={SnapID},share,path - Expose a child directory from the shadow copy as a share\n"
+        L"  -r={file.xml}      - Restore based on a previously-generated Backup Components document\n"
+        L"  -rs={file.xml}     - Simulated restore based on a previously-generated Backup Components doc\n"\
+        L"  -revert={SnapID}   - Revert a volume to the specified shadow copy\n"
+        L"\n"
         L"Examples:\n"
         L"\n"
-        L" - Non-persistent shadow copy creation on C: and E:\n"
+        L" - Non-persistent shadow copy creation on C: and D:\n"
         L"     VSHADOW C: E:\n"
-        L"\n"
-        L" - Non-persistent shadow copy creation on a CSV named Volume1\n"
-        L"     VSHADOW C:\\ClusterStorage\\Volume1\n"
         L"\n"
         L" - Persistent shadow copy creation on C: (with no writers)\n"
         L"     VSHADOW -p -nw C:\n"
@@ -1094,7 +894,6 @@ void CommandLineParser::PrintUsage()
         L"  -ws                - List writer status\n"
         L"  -wm                - List writer summary metadata\n"
         L"  -wm2               - List writer detailed metadata\n"
-        L"  -wm3               - List writer detailed metadata in raw XML format\n"
         L"  -q                 - List all shadow copies in the system\n"
         L"  -qx={SnapSetID}    - List all shadow copies in this set\n"
         L"  -s={SnapID}        - List the shadow copy with the given ID\n"
@@ -1103,8 +902,7 @@ void CommandLineParser::PrintUsage()
         L"  -ds={SnapID}       - Deletes this shadow copy\n"
         L"  -r={file.xml}      - Restore based on a previously-generated Backup Components doc\n"
         L"  -rs={file.xml}     - Simulated restore based on a previously-generated Backup Components doc\n"
-        L"\n");
-    ft.WriteLine(
+        L"\n"
         L"Examples:\n"
         L"\n"
         L" - Non-persistent shadow copy creation on C: and D:\n"
@@ -1168,8 +966,6 @@ CommandLineParser::~CommandLineParser()
     if (m_bWaitForFinish)
     {
         ft.WriteLine(L"\nPress <ENTER> to continue...");
-
-#pragma warning(suppress: 6031)  //Intentionally ignore the return value of getchar() 
         getchar();
     }
 }

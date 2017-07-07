@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// Copyright © Microsoft Corporation. All rights reserved.
+// Copyright © 2004 Microsoft Corporation. All rights reserved.
 // 
 //  This file may contain preliminary information or inaccuracies, 
 //  and may not correctly represent any associated Microsoft 
@@ -16,13 +16,12 @@
 #include "stdafx.h"
 
 // VSS includes
-#include <vss.h>
-#include <vswriter.h>
-#include <vsbackup.h>
-#include <vsmgmt.h>
+#include "vss.h"
+#include "vswriter.h"
+#include "vsbackup.h"
 
 // VDS includes
-#include <vds.h>
+#include "vds.h"
 
 // Our includes
 #include "tracing.h"
@@ -31,8 +30,6 @@
 #include "vssclient.h"
 
 
-// Software provider GUID {b5946137-7b9f-4925-af80-51abd60b20d5}
-const GUID VSS_SWPRV_ProviderId = { 0xb5946137, 0x7b9f, 0x4925, { 0xaf, 0x80, 0x51, 0xab, 0xd6, 0xb, 0x20, 0xd5 } };
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -94,7 +91,6 @@ private:
 
     // interactivity option
     bool        m_bWaitForFinish;
-
 };
 
 

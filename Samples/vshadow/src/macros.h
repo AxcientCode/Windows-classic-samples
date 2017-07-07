@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// Copyright © Microsoft Corporation. All rights reserved.
+// Copyright © 2004 Microsoft Corporation. All rights reserved.
 // 
 //  This file may contain preliminary information or inaccuracies, 
 //  and may not correctly represent any associated Microsoft 
@@ -14,7 +14,6 @@
 #pragma once
 
 #include "stdafx.h"
-
 
 /////////////////////////////////////////////////////////////////////////
 //  utility macros
@@ -96,7 +95,7 @@ const int MAX_VPRINTF_BUFFER_SIZE = 4096;
             wprintf(L"\nASSERTION FAILED: %S\n", #x);       \
             wprintf(L"- File: %s\n- Line: %d\n- Function: %s\n", DBG_INFO); \
             wprintf(L"\nPress <ENTER> to continue...");     \
-            int gc = getchar();                              \
+            getchar();                              \
         }                                           \
     }
 #else
@@ -137,18 +136,6 @@ const int MAX_VPRINTF_BUFFER_SIZE = 4096;
     }                                                                                       \
 }
 
-#define CHECK_COM_UNSUPPORTED( Call ) CHECK_COM_ERROR_UNSUPPORTED( #Call )
-
-#define CHECK_COM_ERROR_UNSUPPORTED( Text )                                      \
-{                                                                                           \
-    ft.Trace(DBG_INFO, L"Executing COM call '%s'", GEN_WSTRINGIZE(Text));                   \
-    HRESULT hrInternal = E_UNEXPECTED;                                                      \
-    ft.WriteLine(L"\nERROR: COM call %s failed.", GEN_WSTRINGIZE(Text));					\
-    ft.WriteLine(L"- Returned HRESULT = UNSUPPORTED");										\
-    ft.WriteLine(L"- Error text: UNSUPPORTED");												\
-    ft.WriteLine(L"- Please re-run VSHADOW.EXE with the /tracing option to get more details");\
-    throw(hrInternal);																		\
-}
 
 //
 //  Macro to execute a Win32 API and to test its result. 

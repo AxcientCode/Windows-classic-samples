@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vshadow", "src\src.vcxproj", "{A05DCA4B-486C-4260-A6F6-519880C5DBFA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug-Server|x64 = Debug-Server|x64
+		Debug-Server|x86 = Debug-Server|x86
+		Release-Server|x64 = Release-Server|x64
+		Release-Server|x86 = Release-Server|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Debug-Server|x64.ActiveCfg = Debug-Server|x64
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Debug-Server|x64.Build.0 = Debug-Server|x64
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Debug-Server|x86.ActiveCfg = Debug-Server|Win32
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Debug-Server|x86.Build.0 = Debug-Server|Win32
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Release-Server|x64.ActiveCfg = Release-Server|x64
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Release-Server|x64.Build.0 = Release-Server|x64
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Release-Server|x86.ActiveCfg = Release-Server|Win32
+		{A05DCA4B-486C-4260-A6F6-519880C5DBFA}.Release-Server|x86.Build.0 = Release-Server|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

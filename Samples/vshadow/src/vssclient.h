@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// Copyright © Microsoft Corporation. All rights reserved.
+// Copyright © 2004 Microsoft Corporation. All rights reserved.
 // 
 //  This file may contain preliminary information or inaccuracies, 
 //  and may not correctly represent any associated Microsoft 
@@ -33,7 +33,7 @@ public:
     ~VssClient();
 
     // Initialize the internal pointers
-    void Initialize(DWORD dwContext = VSS_CTX_BACKUP, wstring xmlDoc = L"", bool bDuringRestore = false);
+    void Initialize(DWORD dwContext, wstring xmlDoc = L"", bool bDuringRestore = false);
 
     //
     //  Shadow copy creation related methods
@@ -108,13 +108,6 @@ public:
     // Break the given shadow copy set 
     void BreakSnapshotSet(VSS_ID snapshotSetID, bool makeReadWrite, vector<wstring> *pVolumeNames=NULL);
 
-    // Break using BreakEx 
-    void BreakSnapshotSetEx(VSS_ID snapshotSetID, DWORD dwBreakExFlags);
-
-    void AddResyncSet(VSS_ID snapshotSetID, wstring wsOptDestination);
-
-    void DoResync(DWORD dwResyncFlags);
-
     // Make the volumes in this list read-write using VDS API
     void MakeVolumesReadWrite(vector<wstring> volumeNames);
     
@@ -143,7 +136,6 @@ public:
 
     // Gather writer metadata
     void GatherWriterMetadata();
-    void GatherWriterMetadataToScreen();
 
     // Gather writer status
     void GatherWriterStatus();
@@ -282,9 +274,6 @@ private:
 
     // List of selected writers/componnets from the previous backup components document
     vector<VssWriter>               m_writerComponentsForRestore;
-
-    // List of resync pairs
-    map<VSS_ID,wstring,ltguid>      m_resyncPairs;
 
     // TRUE if we are during restore
     bool                            m_bDuringRestore;

@@ -13,12 +13,15 @@
 	#undef _WIN32_WINNT
 #endif
 
-#define WINVER _WIN32_WINNT_VISTA  
-#define _WIN32_WINNT _WIN32_WINNT_VISTA  
+#define WINVER _WIN32_WINNT_WS03  
+#define _WIN32_WINNT _WIN32_WINNT_WS03
 
+#pragma warning( disable: 4996 )
 #pragma warning( disable: 4091 )
 
-#define VSS_SERVER
+#ifndef VSS_SERVER
+	#define VSS_SERVER
+#endif
 
 // General includes
 #include <windows.h>
@@ -39,7 +42,6 @@
 
 // STL includes
 #include <vector>
-#include <map>
 #include <algorithm>
 #include <string>
 #include <fstream>

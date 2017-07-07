@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// Copyright © Microsoft Corporation. All rights reserved.
+// Copyright © 2004 Microsoft Corporation. All rights reserved.
 // 
 //  This file may contain preliminary information or inaccuracies, 
 //  and may not correctly represent any associated Microsoft 
@@ -14,15 +14,6 @@
 #pragma once
 
 #include "stdafx.h"
-#include <resapi.h>
-
-
-//for IsUNCPath method
-#define     UNC_PATH_PREFIX1        (L"\\\\?\\UNC\\")
-#define     NONE_UNC_PATH_PREFIX1   (L"\\\\?\\")
-#define     UNC_PATH_PREFIX2        (L"\\\\")
-
-
 
 /////////////////////////////////////////////////////////////////////////
 //  Utility classes 
@@ -239,22 +230,6 @@ inline wstring AppendBackslash(wstring str)
     return str.append(L"\\");
 }
 
-//This method determins if a given volume is a UNC path, returns true if it has a UNC path prefix and false if it has not
-inline bool IsUNCPath(
-    _In_ VSS_PWSZ    pwszVolumeName
-    )
-{
-    // Check UNC path prefix
-    if (_wcsnicmp(pwszVolumeName, UNC_PATH_PREFIX1, wcslen(UNC_PATH_PREFIX1)) == 0) 
-        return true;
-    else if (_wcsnicmp(pwszVolumeName, NONE_UNC_PATH_PREFIX1, wcslen(NONE_UNC_PATH_PREFIX1)) == 0) 
-        return false;
-    else if (_wcsnicmp(pwszVolumeName, UNC_PATH_PREFIX2, wcslen(UNC_PATH_PREFIX2)) == 0) 
-        return true;
-    else
-        return false;
-}
-
 
 /////////////////////////////////////////////////////////////////////////
 //  Volume, File -related utility functions
@@ -267,33 +242,21 @@ inline bool IsVolume(wstring volumePath)
 {
     FunctionTracer ft(DBG_INFO);
 
-    bool bIsVolume = false;
     ft.Trace(DBG_INFO, L"Checking if %s is a real volume path...", volumePath.c_str());
     _ASSERTE(volumePath.length() > 0);
     
     // If the last character is not '\\', append one
     volumePath = AppendBackslash(volumePath);
 
-    if (!ClusterIsPathOnSharedVolume(volumePath.c_str()))
+    // Get the volume name
+    wstring volumeName(MAX_PATH, L'\0');
+    if (!GetVolumeNameForVolumeMountPoint( volumePath.c_str(), WString2Buffer(volumeName), (DWORD)volumeName.length()))
     {
-        // Get the volume name
-        wstring volumeName(MAX_PATH, L'\0');
-        if (!GetVolumeNameForVolumeMountPoint( volumePath.c_str(), WString2Buffer(volumeName), (DWORD)volumeName.length()))
-        {
-            ft.Trace(DBG_INFO, L"GetVolumeNameForVolumeMountPoint(%s) failed with %d", volumePath, GetLastError());
-        }
-        else
-        {
-            bIsVolume = true;
-        }
-    }
-    else
-    {
-        bIsVolume = ::PathFileExists(volumePath.c_str()) == TRUE;
+        ft.Trace(DBG_INFO, L"GetVolumeNameForVolumeMountPoint(%s) failed with %d", volumePath, GetLastError());
+        return false;
     }
 
-    ft.Trace(DBG_INFO, L"IsVolume returns %s", (bIsVolume) ? L"TRUE" : L"FALSE");
-    return bIsVolume;
+    return true;
 }
     
 
@@ -328,130 +291,33 @@ inline wstring GetUniqueVolumeNameForMountPoint(wstring mountPoint)
 
 
 // Get the unique volume name for the given path
-inline wstring GetUniqueVolumeNameForPath(wstring path, bool bIsBackup=false)
+inline wstring GetUniqueVolumeNameForPath(wstring path)
 {
     FunctionTracer ft(DBG_INFO);
 
     _ASSERTE(path.length() > 0);
 
-    wstring volumeRootPath(MAX_PATH, L'\0');
-    wstring volumeUniqueName(MAX_PATH, L'\0');
-
     ft.Trace(DBG_INFO, L"- Get volume path name for %s ...", path.c_str());
 
     // Add the backslash termination, if needed
     path = AppendBackslash(path);
-    if(!IsUNCPath((VSS_PWSZ)path.c_str()))
-    {
-        if (bIsBackup && ClusterIsPathOnSharedVolume(path.c_str()))
-        {
-            DWORD cchVolumeRootPath = MAX_PATH;
-            DWORD cchVolumeUniqueName = MAX_PATH;
-        
-            DWORD dwRet = ClusterPrepareSharedVolumeForBackup(
-                path.c_str(),
-                WString2Buffer(volumeRootPath),
-                &cchVolumeRootPath,
-                WString2Buffer(volumeUniqueName),
-                &cchVolumeUniqueName);
 
-            CHECK_WIN32_ERROR(dwRet, "ClusterPrepareSharedVolumeForBackup");
+    // Get the root path of the volume
+    wstring volumeRootPath(MAX_PATH, L'\0');
+    CHECK_WIN32(GetVolumePathNameW((LPCWSTR)path.c_str(), WString2Buffer(volumeRootPath), (DWORD)volumeRootPath.length()));
+    ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
 
-            ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
-            ft.Trace(DBG_INFO, L"- Unique volume name: %s ...", volumeUniqueName.c_str());
-        }
-        else
-        {
-            // Get the root path of the volume
-        
-            CHECK_WIN32(GetVolumePathNameW((LPCWSTR)path.c_str(), WString2Buffer(volumeRootPath), (DWORD)volumeRootPath.length()));
-            ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
+    // Get the volume name alias (might be different from the unique volume name in rare cases)
+    wstring volumeName(MAX_PATH, L'\0');
+    CHECK_WIN32(GetVolumeNameForVolumeMountPointW((LPCWSTR)volumeRootPath.c_str(), WString2Buffer(volumeName), (DWORD)volumeName.length()));
+    ft.Trace(DBG_INFO, L"- Volume name for path: %s ...", volumeName.c_str());
 
-            // Get the unique volume name
-            CHECK_WIN32(GetVolumeNameForVolumeMountPointW((LPCWSTR)volumeRootPath.c_str(), WString2Buffer(volumeUniqueName), (DWORD)volumeUniqueName.length()));
-            ft.Trace(DBG_INFO, L"- Unique volume name: %s ...", volumeUniqueName.c_str());
-        }
-    }
-    else
-    {
-		CComPtr<IVssBackupComponents> lvssObject;
-        CComPtr<IVssBackupComponentsEx3> lvssObject3;
-        CHECK_COM( CreateVssBackupComponents(&lvssObject) );
-        CHECK_COM(lvssObject->QueryInterface<IVssBackupComponentsEx3>(&lvssObject3));
-        VSS_PWSZ pwszVolumeUniqueName = NULL;
-        VSS_PWSZ pwszVolumeRootPath = NULL;
-		CHECK_COM_UNSUPPORTED(lvssObject3->GetRootAndLogicalPrefixPaths((VSS_PWSZ)path.c_str(), &pwszVolumeUniqueName, &pwszVolumeRootPath));
+    // Get the unique volume name
+    wstring volumeUniqueName(MAX_PATH, L'\0');
+    CHECK_WIN32(GetVolumeNameForVolumeMountPointW((LPCWSTR)volumeName.c_str(), WString2Buffer(volumeUniqueName), (DWORD)volumeUniqueName.length()));
+    ft.Trace(DBG_INFO, L"- Unique volume name: %s ...", volumeUniqueName.c_str());
 
-        volumeUniqueName = BSTR2WString(pwszVolumeUniqueName);
-        volumeRootPath = BSTR2WString(pwszVolumeRootPath);
-
-        ::CoTaskMemFree(pwszVolumeUniqueName);
-        pwszVolumeUniqueName = NULL;
-        ::CoTaskMemFree(pwszVolumeRootPath);
-        pwszVolumeRootPath = NULL;
-
-        ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
-        ft.Trace(DBG_INFO, L"- Unique volume name: %s ...", volumeUniqueName.c_str());
-    }
     return volumeUniqueName;
-}
-
-
-// Get the unique volume name for the given path without throwing on error
-inline bool GetUniqueVolumeNameForPathNoThrow(wstring path, wstring &volname)
-{
-    FunctionTracer ft(DBG_INFO);
-
-    _ASSERTE(path.length() > 0);
-
-    ft.Trace(DBG_INFO, L"- Get volume path name for %s ...", path.c_str());
-
-    // Add the backslash termination, if needed
-    path = AppendBackslash(path);
-
-    wstring volumeRootPath(MAX_PATH, L'\0');
-    wstring volumeUniqueName(MAX_PATH, L'\0');
-
-    if (ClusterIsPathOnSharedVolume(path.c_str()))
-    {
-        DWORD dwRet = ClusterGetVolumePathName(path.c_str(), 
-            WString2Buffer(volumeUniqueName), 
-            (DWORD)volumeUniqueName.length());
-
-        if (dwRet != ERROR_SUCCESS)
-            return false;
-        
-        ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
-        ft.Trace(DBG_INFO, L"- Unique volume name: Deffering until component selection ...");
-    }
-    else
-    {
-        // Get the root path of the volume
-        if (!GetVolumePathNameW((LPCWSTR)path.c_str(),
-                                WString2Buffer(volumeRootPath),
-                                (DWORD)volumeRootPath.length()))
-        {
-            ft.Trace(DBG_INFO, L"GetVolumePathNameW(%s) fails winerror %d", path.c_str(), GetLastError());
-            return false;
-        }
-
-        ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
-
-        // Get the unique volume name
-        if (!GetVolumeNameForVolumeMountPointW((LPCWSTR)volumeRootPath.c_str(),
-                                                WString2Buffer(volumeUniqueName),
-                                                (DWORD)volumeUniqueName.length()))
-        {
-            ft.Trace(DBG_INFO, L"GetVolumeNameForVolumeMountPointW(%s) fails winerror %d", volumeRootPath.c_str(), GetLastError());
-            return false;
-        }
-
-        ft.Trace(DBG_INFO, L"- Unique volume name: %s ...", volumeUniqueName.c_str());
-    }
-    
-    volname = volumeUniqueName;
-
-    return true;
 }
 
 
@@ -529,40 +395,6 @@ inline wstring GetDisplayNameForVolume(wstring volumeName)
             mountPoint = pwszString;
 
     return mountPoint;
-}
-
-inline bool GetDisplayNameForVolumeNoThrow(wstring volumeName, wstring &volumeNameCanon)
-{
-    FunctionTracer ft(DBG_INFO);
-
-    DWORD dwRequired = 0;
-    wstring volumeMountPoints(MAX_PATH, L'\0');
-    if (!GetVolumePathNamesForVolumeName((LPCWSTR)volumeName.c_str(), 
-            WString2Buffer(volumeMountPoints), 
-            (DWORD)volumeMountPoints.length(), 
-            &dwRequired))
-    {
-            // If not enough, retry with a larger size
-            volumeMountPoints.resize(dwRequired, L'\0');
-            if(!dwRequired || !GetVolumePathNamesForVolumeName((LPCWSTR)volumeName.c_str(), 
-                                                                WString2Buffer(volumeMountPoints), 
-                                                                (DWORD)volumeMountPoints.length(), 
-                                                                &dwRequired))
-            {
-                ft.Trace(DBG_INFO, L"GetVolumePathNamesForVolumeName(%s) fails winerror %d", volumeName.c_str(), GetLastError());
-                return false;
-            }
-    }
-
-    // compute the smallest mount point by enumerating the returned MULTI_SZ
-    wstring mountPoint = volumeMountPoints;
-    for(LPWSTR pwszString = (LPWSTR)volumeMountPoints.c_str(); pwszString[0]; pwszString += wcslen(pwszString) + 1)
-        if (mountPoint.length() > wcslen(pwszString))
-            mountPoint = pwszString;
-
-    volumeNameCanon = mountPoint;
-
-    return true;
 }
 
 
@@ -734,13 +566,3 @@ inline wstring VssTimeToString(VSS_TIMESTAMP& vssTime)
 
     return stringDateTime;
 }
-
-struct ltguid
-{
-    bool operator()(GUID guid1, GUID guid2) const
-    {
-        return (guid1.Data1 < guid2.Data1) ||
-               (guid1.Data1 == guid2.Data1 && guid1.Data2 < guid1.Data2) ||
-               (guid1.Data1 == guid2.Data1 && guid1.Data2 == guid2.Data2 && guid1.Data3 < guid2.Data3);
-    }
-};
