@@ -19,7 +19,7 @@
 //  Regular VSS client class 
 //
 //  This class implements a high-level VSS API. It is not dependent on 
-//  VSHADOW.EXE command-line interface - It can be called from an UI program as well.
+//  EFSVSS.EXE command-line interface - It can be called from an UI program as well.
 //
 
 class VssClient
