@@ -36,7 +36,7 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
         ft.WriteLine(
             L"\n"
             L"EFSVSS.EXE 2.2 - Volume Shadow Copy client.\n"
-			L"Portions copyright(C) 2005 Microsoft Corporation.All rights reserved.\n"
+			L"Portions copyright(C) 2005 Microsoft Corporation. All rights reserved.\n"
 			L"Portions copyright(C) 2017 eFolder Inc. All rights reserved.\n"
 			L"\n");
         
@@ -675,7 +675,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
                     // No match. Print an error and the usage
                     ft.WriteLine(L"\nERROR: invalid parameters %s", GetCommandLine());
                     ft.WriteLine(L"- Parameter %s is expected to be a volume!  (shadow copy creation is assumed)", arguments[i].c_str());
-                    ft.WriteLine(L"- Example: VSHADOW C:");
+                    ft.WriteLine(L"- Example: EFSVSS C:");
                     PrintUsage();
                     return 1;
                 }
@@ -812,7 +812,7 @@ void CommandLineParser::PrintUsage()
 #ifdef VSS_SERVER
     ft.WriteLine(
         L"Usage:\n"
-        L"   VSHADOW [optional flags] [commands]\n"
+        L"   EFSVSS [optional flags] [commands]\n"
         L"\n"
         L"List of optional flags:\n"
         L"  -?                 - Displays the usage screen\n"
@@ -828,7 +828,7 @@ void CommandLineParser::PrintUsage()
         L"  -script={file.cmd} - SETVAR script creation\n"
         L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
         L"  -wait              - Wait before program termination or between shadow set break and make-it-write\n"
-        L"  -tracing           - Runs VSHADOW.EXE with enhanced diagnostics\n"
+        L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n"
         L"List of commands:\n"
         L"  {volume list}      - Creates a shadow set on these volumes\n"
@@ -856,19 +856,19 @@ void CommandLineParser::PrintUsage()
         L"Examples:\n"
         L"\n"
         L" - Non-persistent shadow copy creation on C: and D:\n"
-        L"     VSHADOW C: E:\n"
+        L"     EFSVSS C: E:\n"
         L"\n"
         L" - Persistent shadow copy creation on C: (with no writers)\n"
-        L"     VSHADOW -p -nw C:\n"
+        L"     EFSVSS -p -nw C:\n"
         L"\n"
         L" - Transportable shadow copy creation on X:\n"
-        L"     VSHADOW -t=file1.xml X:\n"
+        L"     EFSVSS -t=file1.xml X:\n"
         L"\n"
         L" - Transportable shadow copy import\n"
-        L"     VSHADOW -i=file1.xml\n"
+        L"     EFSVSS -i=file1.xml\n"
         L"\n"
         L" - List all shadow copies in the system:\n"
-        L"     VSHADOW -q\n"
+        L"     EFSVSS -q\n"
         L"\n"
         L"Please see the README.DOC file for more details.\n"
         L"\n"
@@ -877,7 +877,7 @@ void CommandLineParser::PrintUsage()
 #else
     ft.WriteLine(
         L"Usage:\n"
-        L"   VSHADOW [optional flags] [commands]\n"
+        L"   EFSVSS [optional flags] [commands]\n"
         L"\n"
         L"List of optional flags:\n"
         L"  -?                 - Displays the usage screen\n"
@@ -887,7 +887,7 @@ void CommandLineParser::PrintUsage()
         L"  -script={file.cmd} - SETVAR script creation\n"
         L"  -exec={command}    - Custom command executed after shadow creation\n"
         L"  -wait              - Wait before program termination \n"
-        L"  -tracing           - Runs VSHADOW.EXE with enhanced diagnostics\n"
+        L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n"
         L"List of commands:\n"
         L"  {volume list}      - Creates a shadow set on these volumes\n"
@@ -906,10 +906,10 @@ void CommandLineParser::PrintUsage()
         L"Examples:\n"
         L"\n"
         L" - Non-persistent shadow copy creation on C: and D:\n"
-        L"     VSHADOW C: E:\n"
+        L"     EFSVSS C: E:\n"
         L"\n"
         L" - List all shadow copies in the system:\n"
-        L"     VSHADOW -q\n"
+        L"     EFSVSS -q\n"
         L"\n"
         L"Please see the README.DOC file for more details.\n"
         L"\n"

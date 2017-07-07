@@ -23,7 +23,7 @@
     <ProjectGuid>{A05DCA4B-486C-4260-A6F6-519880C5DBFA}</ProjectGuid>
     <RootNamespace>vsnap</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Server|Win32'" Label="Configuration">
@@ -73,17 +73,21 @@
     <OutDir>$(SolutionDir)\bin\Debug-Server\</OutDir>
     <IntDir>Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>efsvss-2003-x86</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Server|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>efsvss-2003-x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Server|Win32'">
     <OutDir>$(SolutionDir)\bin\Release-Server\</OutDir>
     <IntDir>Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>efsvss-2003-x86</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Server|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>efsvss-2003-x64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Server|Win32'">
     <ClCompile>
@@ -101,7 +105,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>vssapi.lib;vss_uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)vshadow.exe</OutputFile>
+      <OutputFile>$(OutDir)efsvss-2003-x86.exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib\ws03\i386;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
@@ -124,7 +128,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>vssapi.lib;vss_uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)vshadow.exe</OutputFile>
+      <OutputFile>$(OutDir)efsvss-2003-x64.exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib\ws03\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
@@ -143,7 +147,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>vssapi.lib;vss_uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)vshadow.exe</OutputFile>
+      <OutputFile>$(OutDir)efsvss-2003-x86.exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib\ws03\i386;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -164,7 +168,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>vssapi.lib;vss_uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)vshadow.exe</OutputFile>
+      <OutputFile>$(OutDir)efsvss-2003-x64.exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib\ws03\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>

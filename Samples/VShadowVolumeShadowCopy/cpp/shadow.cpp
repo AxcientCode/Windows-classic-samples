@@ -48,7 +48,7 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
         ft.WriteLine(
             L"\n"
             L"EFSVSS.EXE 3.0 - Volume Shadow Copy client.\n"
-			L"Portions copyright(C) 2005 Microsoft Corporation.All rights reserved.\n"
+			L"Portions copyright(C) 2005 Microsoft Corporation. All rights reserved.\n"
 			L"Portions copyright(C) 2017 eFolder Inc. All rights reserved.\n"
 			L"\n");
 
