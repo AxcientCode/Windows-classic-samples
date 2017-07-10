@@ -375,12 +375,23 @@ inline wstring GetUniqueVolumeNameForPath(wstring path, bool bIsBackup=false)
     else
     {
 		CComPtr<IVssBackupComponents> lvssObject;
-        CComPtr<IVssBackupComponentsEx3> lvssObject3;
-        CHECK_COM( CreateVssBackupComponents(&lvssObject) );
-        CHECK_COM(lvssObject->QueryInterface<IVssBackupComponentsEx3>(&lvssObject3));
-        VSS_PWSZ pwszVolumeUniqueName = NULL;
-        VSS_PWSZ pwszVolumeRootPath = NULL;
+
+		VSS_PWSZ pwszVolumeUniqueName = NULL;
+		VSS_PWSZ pwszVolumeRootPath = NULL;
+
+#ifdef EFSVSS_2008
+		CComPtr<IVssBackupComponentsEx3> lvssObject3;
+		CHECK_COM(CreateVssBackupComponents(&lvssObject));
+		CHECK_COM(lvssObject->QueryInterface<IVssBackupComponentsEx3>(&lvssObject3));
 		CHECK_COM_UNSUPPORTED(lvssObject3->GetRootAndLogicalPrefixPaths((VSS_PWSZ)path.c_str(), &pwszVolumeUniqueName, &pwszVolumeRootPath));
+#elif EFSVSS_2008_R2
+		CComPtr<IVssBackupComponentsEx4> lvssObject4;
+		CHECK_COM(CreateVssBackupComponents(&lvssObject));
+		CHECK_COM(lvssObject->QueryInterface<IVssBackupComponentsEx4>(&lvssObject4));
+		CHECK_COM(lvssObject4->GetRootAndLogicalPrefixPaths((VSS_PWSZ)path.c_str(), &pwszVolumeUniqueName, &pwszVolumeRootPath));
+#else
+#error("Need to specify EFSVSS_2008 or EFSVSS_2008_R2, maybe stdafx.h isn't included")
+#endif
 
         volumeUniqueName = BSTR2WString(pwszVolumeUniqueName);
         volumeRootPath = BSTR2WString(pwszVolumeRootPath);

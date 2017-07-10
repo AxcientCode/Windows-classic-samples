@@ -6,15 +6,23 @@
 #pragma once
 
 #ifdef WINVER
-	#undef WINVER
+#undef WINVER
 #endif
 
 #ifdef _WIN32_WINNT
-	#undef _WIN32_WINNT
+#undef _WIN32_WINNT
 #endif
 
+#ifdef EFSVSS_2008
 #define WINVER _WIN32_WINNT_VISTA  
 #define _WIN32_WINNT _WIN32_WINNT_VISTA  
+#elif EFSVSS_2008_R2
+#define WINVER _WIN32_WINNT_WIN8  
+#define _WIN32_WINNT _WIN32_WINNT_WIN8  
+#else
+#error("Need to specify EFSVSS_2008 or EFSVSS_2008_R2")
+// Check: Project properties -> C/C++ -> Preprocessor -> Preprocessor definitions
+#endif
 
 #pragma warning( disable: 4091 )
 
