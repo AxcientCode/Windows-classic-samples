@@ -39,6 +39,9 @@ public:
     //  Shadow copy creation related methods
     //
 
+    // Backup type setter
+    void SetBackupType(VSS_BACKUP_TYPE backupType);
+
     // Method to create a shadow copy set with the given volumes
     void CreateSnapshotSet(
         vector<wstring> volumeList, 
@@ -263,6 +266,9 @@ private:
 
     // VSS context
     DWORD                           m_dwContext;
+
+    // VSS backup type
+    VSS_BACKUP_TYPE                 m_backupType;
 
     // The IVssBackupComponents interface is automatically released when this object is destructed.
     // Needed to issue VSS calls 

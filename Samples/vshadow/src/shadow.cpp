@@ -233,6 +233,29 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             continue;
         }
 
+        wstring wsBackupType;
+        if (MatchArgument(arguments[argIndex], L"bt", wsBackupType))
+        {
+            ft.WriteLine(L"(Option: Backup type set: %s)", wsBackupType.c_str());
+
+            if (wsBackupType.compare(L"VSS_BT_UNDEFINED") == 0)
+                m_vssClient.SetBackupType(VSS_BT_UNDEFINED);
+            else if (wsBackupType.compare(L"VSS_BT_FULL") == 0)
+                m_vssClient.SetBackupType(VSS_BT_FULL);
+            else if (wsBackupType.compare(L"VSS_BT_INCREMENTAL") == 0)
+                m_vssClient.SetBackupType(VSS_BT_INCREMENTAL);
+            else if (wsBackupType.compare(L"VSS_BT_DIFFERENTIAL") == 0)
+                m_vssClient.SetBackupType(VSS_BT_DIFFERENTIAL);
+            else if (wsBackupType.compare(L"VSS_BT_LOG") == 0)
+                m_vssClient.SetBackupType(VSS_BT_LOG);
+            else if (wsBackupType.compare(L"VSS_BT_COPY") == 0)
+                m_vssClient.SetBackupType(VSS_BT_COPY);
+            else if (wsBackupType.compare(L"VSS_BT_OTHER") == 0)
+                m_vssClient.SetBackupType(VSS_BT_OTHER);
+
+            continue;
+        }
+
         //
         //  Operations 
         //
@@ -817,6 +840,7 @@ void CommandLineParser::PrintUsage()
         L"List of optional flags:\n"
         L"  -?                 - Displays the usage screen\n"
         L"  -p                 - Manages persistent shadow copies\n"
+        L"  -bt                - Selects backup type (default value is VSS_BT_FULL)\n"
         L"  -nw                - Manages no-writer shadow copies\n"
         L"  -ad                - Creates differential HW shadow copies\n"
         L"  -ap                - Creates plex HW shadow copies\n"
@@ -860,6 +884,9 @@ void CommandLineParser::PrintUsage()
         L"\n"
         L" - Persistent shadow copy creation on C: (with no writers)\n"
         L"     EFSVSS -p -nw C:\n"
+        L"\n"
+        L" - Persistent differential shadow copy creation on C: \n"
+        L"     EFSVSS -p -bt=VSS_BT_DIFFERENTIAL C:\n"
         L"\n"
         L" - Transportable shadow copy creation on X:\n"
         L"     EFSVSS -t=file1.xml X:\n"

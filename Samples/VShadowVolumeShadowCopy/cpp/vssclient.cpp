@@ -23,6 +23,7 @@ VssClient::VssClient()
     m_dwContext = VSS_CTX_BACKUP;
     m_latestSnapshotSetID = GUID_NULL;
     m_bDuringRestore = false;
+    m_backupType = VSS_BT_FULL;
 }
 
 
@@ -38,6 +39,11 @@ VssClient::~VssClient()
         CoUninitialize();
 }
 
+void VssClient::SetBackupType(VSS_BACKUP_TYPE backupType)
+{
+    if (backupType >= VSS_BT_UNDEFINED && backupType <= VSS_BT_OTHER)
+        m_backupType = backupType;
+}
 
 // Initialize the COM infrastructure and the internal pointers
 void VssClient::Initialize(DWORD dwContext, wstring xmlDoc, bool bDuringRestore)
@@ -98,7 +104,7 @@ void VssClient::Initialize(DWORD dwContext, wstring xmlDoc, bool bDuringRestore)
     m_dwContext = dwContext;
 
     // Set various properties per backup components instance
-    CHECK_COM(m_pVssObject->SetBackupState(true, true, VSS_BT_FULL, false));
+    CHECK_COM(m_pVssObject->SetBackupState(true, true, m_backupType, false));
 }
 
 
