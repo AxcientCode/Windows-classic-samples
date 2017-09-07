@@ -185,7 +185,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-x86.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -202,7 +202,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-r2-x86.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -219,7 +219,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-x64.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -236,7 +236,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-r2-x64.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -257,7 +257,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-x86.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -278,7 +278,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-r2-x86.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -299,7 +299,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-x64.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -320,7 +320,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>vssapi.lib;resutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vssapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)efsvss-2008-r2-x64.exe</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -330,6 +330,7 @@
     <ClCompile Include="delete.cpp" />
     <ClCompile Include="expose.cpp" />
     <ClCompile Include="query.cpp" />
+    <ClCompile Include="ResutilsShim.cpp" />
     <ClCompile Include="revert.cpp" />
     <ClCompile Include="select.cpp" />
     <ClCompile Include="shadow.cpp" />
@@ -343,6 +344,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="macros.h" />
+    <ClInclude Include="ResutilsShim.h" />
     <ClInclude Include="shadow.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="tracing.h" />

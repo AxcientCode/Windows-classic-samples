@@ -14,7 +14,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include <resapi.h>
+#include "ResutilsShim.h"
 
 
 //for IsUNCPath method
