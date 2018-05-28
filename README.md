@@ -37,3 +37,21 @@ Other samples repos:
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
 or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+# Visual Studio 2015 build environment
+
+You need to have Visual Studio 2015, Windows SDK 7.1, and Windows SDK 8.1 installed.
+
+You also need to set the following environment variables:
+
+```
+WindowsSdk_71A_ExecutablePath	C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin
+WindowsSdk_71A_IncludePath	C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include
+WindowsSdk_71A_LibraryPath_x64	C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib\x64
+WindowsSdk_71A_LibraryPath_x86	C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib
+
+WindowsSdk_81_ExecutablePath	C:\Program Files (x86)\Windows Kits\8.1\bin\x86
+WindowsSdk_81_IncludePath	C:\Program Files (x86)\Windows Kits\8.1\Include\um;C:\Program Files (x86)\Windows Kits\8.1\Include\shared
+WindowsSdk_81_LibraryPath_x64	C:\Program Files (x86)\Windows Kits\8.1\Lib\winv6.3\um\x64
+WindowsSdk_81_LibraryPath_x86	C:\Program Files (x86)\Windows Kits\8.1\Lib\winv6.3\um\x86
+```
