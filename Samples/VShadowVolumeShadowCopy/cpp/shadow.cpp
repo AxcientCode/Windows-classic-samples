@@ -111,7 +111,10 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
     // Non-empty if scripts have to be generated 
     wstring stringFileName;
 
-    // Script to execute between snapshot creation and backup complete
+	// The user-specified snapshot level
+	wstring stringSnapshotLevel;
+
+	// Script to execute between snapshot creation and backup complete
     wstring execCommand;
 
     // The backup components document
@@ -257,7 +260,14 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             continue;
         }
 
-        // Check for the command execution option
+		// Check for the user-specified snapshot level
+		if (MatchArgument(arguments[argIndex], L"snaplevel", stringSnapshotLevel))
+		{
+			ft.WriteLine(L"(Option: User specified snapshot level '%s')", stringSnapshotLevel.c_str());
+			continue;
+		}
+
+		// Check for the command execution option
         if (MatchArgument(arguments[argIndex], L"exec", execCommand))
         {
             ft.WriteLine(L"(Option: Execute binary/script after shadow creation '%s')", execCommand.c_str());
@@ -496,7 +506,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         }
 
         // List the writer state
-        if (MatchArgument(arguments[argIndex], L"ws"))
+        if (MatchArgument(arguments[argIndex], L"ws") || MatchArgument(arguments[argIndex], L"wsmp"))
         {
             ft.WriteLine(L"(Option: List writer status)");
 
@@ -505,13 +515,13 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.Initialize(dwContext);
 
             // Gather writer metadata
-            m_vssClient.GatherWriterMetadata();
+            m_vssClient.GatherWriterMetadata(true);
 
             // Gather writer status
             m_vssClient.GatherWriterStatus();
 
             // List writer status
-            m_vssClient.ListWriterStatus();
+            m_vssClient.ListWriterStatus(MatchArgument(arguments[argIndex], L"wsmp"));
 
             return 0;
         }
@@ -712,7 +722,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.GatherWriterStatus();
 
             // List writer status
-            m_vssClient.ListWriterStatus();
+            m_vssClient.ListWriterStatus(false);
 
             // Initialize the list of writers and components for restore
             m_vssClient.InitializeWriterComponentsForRestore();
@@ -778,7 +788,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.GatherWriterStatus();
 
             // List writer status
-            m_vssClient.ListWriterStatus();
+            m_vssClient.ListWriterStatus(false);
 
             // Initialize the list of writers and components for restore
             m_vssClient.InitializeWriterComponentsForRestore();
@@ -903,7 +913,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
                 {
                     // Generate management scripts if needed
                     if (stringFileName.length() > 0)
-                        m_vssClient.GenerateSetvarScript(stringFileName);
+                        m_vssClient.GenerateSetvarScript(stringFileName, stringSnapshotLevel);
 
                     // Executing the custom command if needed
                     if (execCommand.length() > 0)
@@ -1039,7 +1049,8 @@ void CommandLineParser::PrintUsage()
         L"  -revertsig         - Revert to the original disk's signature during resync.\n"
         L"  -novolcheck        - Ignore volume check during resync. Unselected volumes will be overwritten.\n"
         L"  -script={file.cmd} - SETVAR script creation\n"
-        L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
+		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script."
+		L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
         L"  -wait              - Wait before program termination or between shadow set break and make-it-write\n"
         L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n" );
@@ -1047,7 +1058,8 @@ void CommandLineParser::PrintUsage()
         L"List of commands:\n"
         L"  {volume list}                   - Creates a shadow set on these volumes\n"
         L"  -ws                             - List writer status\n"
-        L"  -wm                             - List writer summary metadata\n"
+		L"  -wsmp                           - List writer status (machine parseable)\n"
+		L"  -wm                             - List writer summary metadata\n"
         L"  -wm2                            - List writer detailed metadata\n"
         L"  -wm3                            - List writer detailed metadata in raw XML format\n"
         L"  -q                              - List all shadow copies in the system\n"
@@ -1111,15 +1123,17 @@ void CommandLineParser::PrintUsage()
         L"  -wx={Writer Name}  - Exclude a writer/component from set creation or restore\n"
         L"  -bc={file.xml}     - Generates the backup components document during shadow creation.\n"
         L"  -script={file.cmd} - SETVAR script creation\n"
-        L"  -exec={command}    - Custom command executed after shadow creation\n"
+		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script."
+		L"  -exec={command}    - Custom command executed after shadow creation\n"
         L"  -wait              - Wait before program termination \n"
         L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n"
         L"List of commands:\n"
         L"  {volume list}      - Creates a shadow set on these volumes\n"
         L"  -ws                - List writer status\n"
-        L"  -wm                - List writer summary metadata\n"
-        L"  -wm2               - List writer detailed metadata\n"
+		L"  -wsmp              - List writer status (machine parseable)\n"
+		L"  -wm                - List writer summary metadata\n"
+		L"  -wm2               - List writer detailed metadata\n"
         L"  -wm3               - List writer detailed metadata in raw XML format\n"
         L"  -q                 - List all shadow copies in the system\n"
         L"  -qx={SnapSetID}    - List all shadow copies in this set\n"

@@ -173,7 +173,7 @@ void VssClient::SaveBackupComponentsDocument(wstring fileName)
 
 // Generate the SETVAR script
 // This is useful for management operations
-void VssClient::GenerateSetvarScript(wstring stringFileName)
+void VssClient::GenerateSetvarScript(wstring stringFileName, wstring stringSnapshotLevel)
 {
     FunctionTracer ft(DBG_INFO);
 
@@ -206,6 +206,11 @@ void VssClient::GenerateSetvarScript(wstring stringFileName)
             ofile << L"SET SHADOW_DEVICE_" << i+1 << L"=" << Snap.m_pwszSnapshotDeviceObject << L"\n";
         }
     }
+
+	if (stringSnapshotLevel.size() > 0)
+	{
+		ofile << L"SET SNAPSHOT_LEVEL=" << stringSnapshotLevel.c_str() << L"\n";
+	}
 
     ofile.close();
 }

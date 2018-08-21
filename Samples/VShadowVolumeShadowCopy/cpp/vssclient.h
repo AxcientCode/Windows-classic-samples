@@ -69,7 +69,7 @@ public:
     void ImportSnapshotSet();
 
     // Generate the SETVAR script for this shadow copy set
-    void GenerateSetvarScript(wstring stringFileName);
+    void GenerateSetvarScript(wstring stringFileName, wstring stringSnapshotLevel);
 
     // Marks all selected components as succeeded for backup
     void SetBackupSucceeded(bool succeeded);
@@ -145,7 +145,7 @@ public:
     //
 
     // Gather writer metadata
-    void GatherWriterMetadata();
+    void GatherWriterMetadata(bool bSkipDetails=false);
     void GatherWriterMetadataToScreen();
 
     // Gather writer status
@@ -161,7 +161,7 @@ public:
     void ListWriterMetadata(bool bListDetailedInfo);
 
     // List gathered writer status
-    void ListWriterStatus();
+    void ListWriterStatus(bool bMachineParseable);
 
     // Pre restore
     void PreRestore();
