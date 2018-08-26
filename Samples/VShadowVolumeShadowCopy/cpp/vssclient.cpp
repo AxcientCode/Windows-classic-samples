@@ -24,6 +24,7 @@ VssClient::VssClient()
     m_latestSnapshotSetID = GUID_NULL;
     m_bDuringRestore = false;
     m_backupType = VSS_BT_FULL;
+	m_bIgnoreIndividualWriterGatherFailures = false;
 }
 
 
@@ -45,12 +46,17 @@ void VssClient::SetBackupType(VSS_BACKUP_TYPE backupType)
         m_backupType = backupType;
 }
 
+void VssClient::SetIgnoreIndividualWriterGatherFailures(bool v)
+{
+	m_bIgnoreIndividualWriterGatherFailures = v;
+}
+
 // Initialize the COM infrastructure and the internal pointers
 void VssClient::Initialize(DWORD dwContext, wstring xmlDoc, bool bDuringRestore)
 {
     FunctionTracer ft(DBG_INFO);
 
-    // Initialize COM 
+	// Initialize COM 
     CHECK_COM( CoInitialize(NULL) );
     m_bCoInitializeCalled = true;
 

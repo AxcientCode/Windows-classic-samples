@@ -116,13 +116,19 @@ void VssClient::DiscoverDirectlyExcludedComponents(
         VssWriter & writer = writerList[iWriter];
 
         // Check if the writer is excluded
-        if (FindStringInList(writer.name, excludedWriterAndComponentList) || 
-            FindStringInList(writer.id, excludedWriterAndComponentList) ||
-            FindStringInList(writer.instanceId, excludedWriterAndComponentList))
+        if (FindStringInList(writer.name, excludedWriterAndComponentList, false) || 
+            FindStringInList(writer.id, excludedWriterAndComponentList, true) ||
+            FindStringInList(writer.instanceId, excludedWriterAndComponentList, true))
         {
+			ft.WriteLine(L" - Writer '%s' (id=%s, instance=%s) is explicitly excluded from backup ",
+				writer.name.c_str(), writer.id.c_str(), writer.instanceId.c_str());
             writer.isExcluded = true;
             continue;
         }
+
+		// Do not exclude the Shadow Copy Optimization Writer just because it has no components
+		if (IsEqual(writer.id, L"{4dc3bdd4-ab48-4d07-adb0-3bee2926fd7f}"))
+			continue;
 
         // Check if the component is excluded
         for (unsigned iComponent = 0; iComponent < writer.components.size(); iComponent++)
@@ -138,9 +144,9 @@ void VssClient::DiscoverDirectlyExcludedComponents(
             wstring componentPathWithWriterIID = writer.instanceId + L":" + component.fullPath;
 
             // Check to see if this component is explicitly excluded
-            if (FindStringInList(componentPathWithWriterName, excludedWriterAndComponentList) || 
-                FindStringInList(componentPathWithWriterID, excludedWriterAndComponentList) ||
-                FindStringInList(componentPathWithWriterIID, excludedWriterAndComponentList))
+            if (FindStringInList(componentPathWithWriterName, excludedWriterAndComponentList, false) || 
+                FindStringInList(componentPathWithWriterID, excludedWriterAndComponentList, true) ||
+                FindStringInList(componentPathWithWriterIID, excludedWriterAndComponentList, true))
             {
                 ft.WriteLine(L"- Component '%s' from writer '%s' is explicitly excluded from backup ",
                     component.fullPath.c_str(), writer.name.c_str());
@@ -163,7 +169,7 @@ void VssClient::DiscoverDirectlyExcludedComponents(
         // If all components are missing or excluded, then exclude the writer too
         if (!nonExcludedComponents)
         {
-            ft.WriteLine(L"- Excluding writer '%s' since it has no selected components for restore.", writer.name.c_str());
+            ft.WriteLine(L"- Excluding writer '%s' since it has no selected components for backup.", writer.name.c_str());
             writer.isExcluded = true;
         }
     }
@@ -228,7 +234,7 @@ void VssClient::DiscoverNonShadowedExcludedComponents(
             // If yes, exclude the component
             for (unsigned iVol = 0; iVol < component.affectedVolumes.size(); iVol++)
             {
-                if (!FindStringInList(component.affectedVolumes[iVol], shadowSourceVolumes))
+                if (!FindStringInList(component.affectedVolumes[iVol], shadowSourceVolumes, false))
                 {
                     ft.WriteLine(L"- Component '%s' from writer '%s' is excluded from backup "
                         L"(it requires %s in the shadow set)",
@@ -302,6 +308,10 @@ void VssClient::DiscoverExcludedWriters()
         VssWriter & writer = m_writerList[iWriter];
         if (writer.isExcluded)
             continue;
+
+		// Do not exclude the Shadow Copy Optimization Writer just because it has no components
+		if (IsEqual(writer.id, L"{4dc3bdd4-ab48-4d07-adb0-3bee2926fd7f}"))
+			continue;
 
         // Discover if we have any:
         // - non-excluded selectable components 
@@ -682,7 +692,7 @@ bool VssClient::IsWriterSelected(GUID guidInstanceId)
 
 
 // Check the status for all selected writers
-void VssClient::CheckSelectedWriterStatus()
+void VssClient::CheckSelectedWriterStatus(bool bVerbose, bool bSilentlyIgnoreWriterFailures)
 {
     FunctionTracer ft(DBG_INFO);
 
@@ -694,63 +704,95 @@ void VssClient::CheckSelectedWriterStatus()
     unsigned cWriters = 0;
     CHECK_COM(m_pVssObject->GetWriterStatusCount(&cWriters));
 
+	// We must delay any failures until we have called GetWriterStatus on all writers.
+	HRESULT result = S_OK;
+
     // Enumerate each writer
     for(unsigned iWriter = 0; iWriter < cWriters; iWriter++)
     {
-        VSS_ID idInstance = GUID_NULL;
-        VSS_ID idWriter= GUID_NULL;
-        VSS_WRITER_STATE eWriterStatus = VSS_WS_UNKNOWN;
-        CComBSTR bstrWriterName;
-        HRESULT hrWriterFailure = S_OK;
+		try
+		{
+			VSS_ID idInstance = GUID_NULL;
+			VSS_ID idWriter = GUID_NULL;
+			VSS_WRITER_STATE eWriterStatus = VSS_WS_UNKNOWN;
+			CComBSTR bstrWriterName;
+			HRESULT hrWriterFailure = S_OK;
 
-        // Get writer status
-        CHECK_COM(m_pVssObject->GetWriterStatus(iWriter,
-                             &idInstance,
-                             &idWriter,
-                             &bstrWriterName,
-                             &eWriterStatus,
-                             &hrWriterFailure));
+			// Get writer status
+			CHECK_COM(m_pVssObject->GetWriterStatus(iWriter,
+				&idInstance,
+				&idWriter,
+				&bstrWriterName,
+				&eWriterStatus,
+				&hrWriterFailure));
 
-        // If the writer is not selected, just continue
-        if (!IsWriterSelected(idInstance))
-            continue;
+			// If the writer is not selected, just continue
+			if (!IsWriterSelected(idInstance))
+				continue;
 
-        // If the writer is in non-stable state, break
-        switch(eWriterStatus)
-        {
-            case VSS_WS_FAILED_AT_IDENTIFY:
-            case VSS_WS_FAILED_AT_PREPARE_BACKUP:
-            case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
-            case VSS_WS_FAILED_AT_FREEZE:
-            case VSS_WS_FAILED_AT_THAW:
-            case VSS_WS_FAILED_AT_POST_SNAPSHOT:
-            case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
-            case VSS_WS_FAILED_AT_PRE_RESTORE:
-            case VSS_WS_FAILED_AT_POST_RESTORE:
+			// If the writer is in non-stable state, break
+			switch (eWriterStatus)
+			{
+			case VSS_WS_FAILED_AT_IDENTIFY:
+			case VSS_WS_FAILED_AT_PREPARE_BACKUP:
+			case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
+			case VSS_WS_FAILED_AT_FREEZE:
+			case VSS_WS_FAILED_AT_THAW:
+			case VSS_WS_FAILED_AT_POST_SNAPSHOT:
+			case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
+			case VSS_WS_FAILED_AT_PRE_RESTORE:
+			case VSS_WS_FAILED_AT_POST_RESTORE:
 #ifdef VSS_SERVER
-            case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
+			case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
 #endif
-                break;
+				break;
 
-            default:
-                continue;
-        }
+			default:
+				if (bVerbose)
+				{
+					ft.WriteLine(L"  - Selected writer '%s' is OK (id=" WSTR_GUID_FMT L", instanceID=" WSTR_GUID_FMT L", status=%s)",
+						(PWCHAR)bstrWriterName,
+						GUID_PRINTF_ARG(idWriter),
+						GUID_PRINTF_ARG(idInstance),
+						GetStringFromWriterStatus(eWriterStatus).c_str()
+					);
+				}
+				continue;
+			}
 
-        // Print writer status
-        ft.WriteLine(L"\n"
-            L"ERROR: Selected writer '%s' is in failed state!\n"
-            L"   - Status: %d (%s)\n" 
-            L"   - Writer Failure code: 0x%08lx (%s)\n" 
-            L"   - Writer ID: " WSTR_GUID_FMT L"\n"
-            L"   - Instance ID: " WSTR_GUID_FMT L"\n",
-            (PWCHAR)bstrWriterName,
-            eWriterStatus, GetStringFromWriterStatus(eWriterStatus).c_str(), 
-            hrWriterFailure,FunctionTracer::HResult2String(hrWriterFailure).c_str(),
-            GUID_PRINTF_ARG(idWriter),
-            GUID_PRINTF_ARG(idInstance)
-            );
+			if (bSilentlyIgnoreWriterFailures)
+				continue;
 
-        // Stop here
-        throw(E_UNEXPECTED);
+			// Print writer status
+			ft.WriteLine(L"\n"
+				L"ERROR: Selected writer '%s' is in failed state!\n"
+				L"   - Status: %d (%s)\n"
+				L"   - Writer Failure code: 0x%08lx (%s)\n"
+				L"   - Writer ID: " WSTR_GUID_FMT L"\n"
+				L"   - Instance ID: " WSTR_GUID_FMT L"\n",
+				(PWCHAR)bstrWriterName,
+				eWriterStatus, GetStringFromWriterStatus(eWriterStatus).c_str(),
+				hrWriterFailure, FunctionTracer::HResult2String(hrWriterFailure).c_str(),
+				GUID_PRINTF_ARG(idWriter),
+				GUID_PRINTF_ARG(idInstance)
+			);
+
+			// Fail the operation after enumerating all writers
+			result = E_UNEXPECTED;
+		}
+		catch (HRESULT hr)
+		{
+			if (!bSilentlyIgnoreWriterFailures)
+			{
+				ft.WriteLine(L"\nERROR: GetWriterStatus failed in CheckSelectedWriterStatus (0x%08lx), will keep trying other writers...\n", hr);
+			}
+			if (S_OK == hr)
+				hr = E_UNEXPECTED;
+			result = hr;
+		}
     }
+
+	// Now we can propagate any error that occurred when checking all writers' status
+	if (S_OK != result && !bSilentlyIgnoreWriterFailures)
+		throw result;
 }

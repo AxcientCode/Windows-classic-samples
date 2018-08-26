@@ -198,7 +198,7 @@ void VssClient::MakeVolumesReadWrite(vector<wstring> snapshotVolumes)
                     uniqueVolumeName.c_str(), name.c_str(), iPack, iProvider);
 
                 // Check to see if this is one of our volumes. If not, continue
-                if (!FindStringInList(uniqueVolumeName, snapshotVolumeUniqueNames))
+                if (!FindStringInList(uniqueVolumeName, snapshotVolumeUniqueNames, false))
                     continue;
 
                 // Clear the read-only flag
@@ -223,7 +223,7 @@ void VssClient::MakeVolumesReadWrite(vector<wstring> snapshotVolumes)
         ft.WriteLine(L"WARNING: some volumes were not succesfully converted to read-write!");
 
         for (unsigned i = 0; i < snapshotVolumeUniqueNames.size(); i++)
-            if (!FindStringInList(snapshotVolumeUniqueNames[i], clearedVolumes))
+            if (!FindStringInList(snapshotVolumeUniqueNames[i], clearedVolumes, false))
                 ft.WriteLine(L"- Volume %s not found on the system. Clearing the read-only flag failed on it.",
                     snapshotVolumeUniqueNames[i].c_str());
     }

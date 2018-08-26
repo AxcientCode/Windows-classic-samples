@@ -22,7 +22,7 @@
 
 
 // Gather writers metadata
-void VssClient::GatherWriterMetadata()
+void VssClient::GatherWriterMetadata(bool bSkipDetails)
 {
     FunctionTracer ft(DBG_INFO);
 
@@ -36,10 +36,12 @@ void VssClient::GatherWriterMetadata()
     // Waits for the async operation to finish and checks the result
     WaitAndCheckForAsyncOperation(pAsync);
 
-    ft.WriteLine(L"Initialize writer metadata ...");   
+	if (!bSkipDetails) {
+		ft.WriteLine(L"Initialize writer metadata ...");
 
-    // Initialize the internal metadata data structures
-    InitializeWriterMetadata();
+		// Initialize the internal metadata data structures
+		InitializeWriterMetadata();
+	}
 }
 
 
@@ -49,7 +51,7 @@ void VssClient::GatherWriterStatus()
     FunctionTracer ft(DBG_INFO);
 
     // Gathers writer status
-    // WARNING: GatherWriterMetadata must be called before
+	// (WARNING: GatherWriterMetadata must be called before, but you can set bSkipDetails=true)
     CComPtr<IVssAsync>  pAsync;
     CHECK_COM(m_pVssObject->GatherWriterStatus(&pAsync));
 
@@ -69,16 +71,32 @@ void VssClient::InitializeWriterMetadata()
     // Enumerate writers
     for (unsigned iWriter = 0; iWriter < cWriters; iWriter++)
     {
-        // Get the metadata for this particular writer
-        VSS_ID idInstance = GUID_NULL;
-        CComPtr<IVssExamineWriterMetadata> pMetadata;
-        CHECK_COM(m_pVssObject->GetWriterMetadata(iWriter, &idInstance, &pMetadata));
+		// The failure to gather the metadata for one particular writer should not prevent
+		// us from gathering the metadata for other writers that we can enumerate.
+		try
+		{
+			// Get the metadata for this particular writer
+			VSS_ID idInstance = GUID_NULL;
+			CComPtr<IVssExamineWriterMetadata> pMetadata;
+			CHECK_COM(m_pVssObject->GetWriterMetadata(iWriter, &idInstance, &pMetadata));
 
-        VssWriter   writer;
-        writer.Initialize(pMetadata);
+			VssWriter   writer;
+			writer.Initialize(pMetadata);
 
-        // Add this writer to the list 
-        m_writerList.push_back(writer);
+			// Add this writer to the list 
+			m_writerList.push_back(writer);
+		}
+		catch (HRESULT hr)
+		{
+			if (m_bIgnoreIndividualWriterGatherFailures)
+			{
+				ft.WriteLine(L"\nWARNING: Failed to gather metadata for writer %u (will continue gathering for other writers)\n", (unsigned int)iWriter);
+			}
+			else
+			{
+				throw hr;
+			}
+		}
     }
 }
 
@@ -161,7 +179,7 @@ void VssClient::ListWriterMetadata(bool bListDetailedInfo)
 
 
 // Lists the status for all writers
-void VssClient::ListWriterStatus()
+void VssClient::ListWriterStatus(bool bMachineParseable)
 {
     FunctionTracer ft(DBG_INFO);
 
@@ -172,6 +190,11 @@ void VssClient::ListWriterStatus()
     unsigned cWriters = 0;
     CHECK_COM(m_pVssObject->GetWriterStatusCount(&cWriters));
     ft.WriteLine(L"- Number of writers that responded: %u", cWriters);  
+
+	if (bMachineParseable)
+	{
+		ft.WriteLine(L"HEADER|statuscode|statusname|failcode|faildesc|writer_id|instance_id|name");
+	}
 
     // Enumerate each writer
     for(unsigned iWriter = 0; iWriter < cWriters; iWriter++)
@@ -190,19 +213,33 @@ void VssClient::ListWriterStatus()
                              &eWriterStatus,
                              &hrWriterFailure));
 
-        // Print writer status
-        ft.WriteLine(L"\n"
-            L"* WRITER \"%s\"\n"
-            L"   - Status: %d (%s)\n" 
-            L"   - Writer Failure code: 0x%08lx (%s)\n" 
-            L"   - Writer ID: " WSTR_GUID_FMT L"\n"
-            L"   - Instance ID: " WSTR_GUID_FMT L"\n",
-            (PWCHAR)bstrWriterName,
-            eWriterStatus, GetStringFromWriterStatus(eWriterStatus).c_str(), 
-            hrWriterFailure, FunctionTracer::HResult2String(hrWriterFailure).c_str(),
-            GUID_PRINTF_ARG(idWriter),
-            GUID_PRINTF_ARG(idInstance)
-            );
+		// Print writer status
+		if (!bMachineParseable)
+		{
+			ft.WriteLine(L"\n"
+				L"* WRITER \"%s\"\n"
+				L"   - Status: %d (%s)\n" 
+				L"   - Writer Failure code: 0x%08lx (%s)\n" 
+				L"   - Writer ID: " WSTR_GUID_FMT L"\n"
+				L"   - Instance ID: " WSTR_GUID_FMT L"\n",
+				(PWCHAR)bstrWriterName,
+				eWriterStatus, GetStringFromWriterStatus(eWriterStatus).c_str(), 
+				hrWriterFailure, FunctionTracer::HResult2String(hrWriterFailure).c_str(),
+				GUID_PRINTF_ARG(idWriter),
+				GUID_PRINTF_ARG(idInstance)
+				);
+		}
+		else
+		{
+			ft.WriteLine(
+				L"WRITER|%d|%s|0x%08lx|%s|" WSTR_GUID_FMT L"|" WSTR_GUID_FMT L"|%s",
+				eWriterStatus, GetStringFromWriterStatus(eWriterStatus).c_str(),
+				hrWriterFailure, FunctionTracer::HResult2String(hrWriterFailure).c_str(),
+				GUID_PRINTF_ARG(idWriter),
+				GUID_PRINTF_ARG(idInstance),
+				(PWCHAR)bstrWriterName
+			);
+		}
     }
 }
     
@@ -563,10 +600,10 @@ void VssComponent::Initialize(wstring writerNameParam, IVssWMComponent * pCompon
     // Compute the affected paths and volumes
     for(unsigned i = 0; i < descriptors.size(); i++)
     {
-        if (!FindStringInList(descriptors[i].expandedPath, affectedPaths))
+        if (!FindStringInList(descriptors[i].expandedPath, affectedPaths, false))
             affectedPaths.push_back(descriptors[i].expandedPath);
 
-        if (!FindStringInList(descriptors[i].affectedVolume, affectedVolumes))
+        if (!FindStringInList(descriptors[i].affectedVolume, affectedVolumes, false))
             affectedVolumes.push_back(descriptors[i].affectedVolume);
     }
 

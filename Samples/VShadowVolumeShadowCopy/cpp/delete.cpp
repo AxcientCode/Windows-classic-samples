@@ -82,7 +82,7 @@ void VssClient::DeleteAllSnapshots()
 
 
 // Delete the given shadow copy set 
-void VssClient::DeleteSnapshotSet(VSS_ID snapshotSetID)
+void VssClient::DeleteSnapshotSet(VSS_ID snapshotSetID, bool bIgnoreFailures)
 {
     FunctionTracer ft(DBG_INFO);
 
@@ -101,10 +101,24 @@ void VssClient::DeleteSnapshotSet(VSS_ID snapshotSetID)
 
     if (FAILED(hr))
     {
-        ft.WriteLine(L"Error while deleting shadow copies...");
+		ft.WriteLine(L"Error while deleting shadow copies... (hr=0x%08lx)", hr);
         ft.WriteLine(L"- Last shadow copy that could not be deleted: " WSTR_GUID_FMT, GUID_PRINTF_ARG(idNonDeletedSnapshotID));
-        CHECK_COM_ERROR(hr, L"m_pVssObject->DeleteSnapshots(snapshotSetID, VSS_OBJECT_SNAPSHOT_SET,FALSE,&lSnapshots,&idNonDeleted)");
+		if (!bIgnoreFailures)
+		{
+			CHECK_COM_ERROR(hr, L"m_pVssObject->DeleteSnapshots(snapshotSetID, VSS_OBJECT_SNAPSHOT_SET,FALSE,&lSnapshots,&idNonDeleted)");
+		}
     }
+}
+
+// Delete the latest snapshot set that was taken (if any)
+void VssClient::DeleteLatestSnapshotSet(bool bIgnoreFailures)
+{
+	FunctionTracer ft(DBG_INFO);
+
+	if (GUID_NULL == m_latestSnapshotSetID)
+		return;
+
+	DeleteSnapshotSet(m_latestSnapshotSetID, bIgnoreFailures);
 }
 
 void VssClient::DeleteOldestSnapshot(const wstring& stringVolumeName)

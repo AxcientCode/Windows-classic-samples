@@ -42,6 +42,9 @@ public:
     // Backup type setter
     void SetBackupType(VSS_BACKUP_TYPE backupType);
 
+	// Set whether or not to ignore failures to gather metadata of individual VSS writers
+	void SetIgnoreIndividualWriterGatherFailures(bool v);
+
     // Method to create a shadow copy set with the given volumes
     void CreateSnapshotSet(
         vector<wstring> volumeList, 
@@ -69,7 +72,7 @@ public:
     void ImportSnapshotSet();
 
     // Generate the SETVAR script for this shadow copy set
-    void GenerateSetvarScript(wstring stringFileName);
+    void GenerateSetvarScript(wstring stringFileName, wstring stringSnapshotLevel);
 
     // Marks all selected components as succeeded for backup
     void SetBackupSucceeded(bool succeeded);
@@ -96,7 +99,10 @@ public:
     void DeleteAllSnapshots();
 
     // Delete the given shadow copy set 
-    void DeleteSnapshotSet(VSS_ID snapshotSetID);
+    void DeleteSnapshotSet(VSS_ID snapshotSetID, bool bIgnoreFailures);
+
+	// Delete the latest snapshot set that was taken (if any)
+	void DeleteLatestSnapshotSet(bool bIgnoreFailures);
 
     // Delete the given shadow copy
     void DeleteSnapshot(VSS_ID snapshotID);
@@ -138,7 +144,7 @@ public:
     //
 
     // Gather writer metadata
-    void GatherWriterMetadata();
+    void GatherWriterMetadata(bool bSkipDetails = false);
 
     // Gather writer status
     void GatherWriterStatus();
@@ -153,7 +159,7 @@ public:
     void ListWriterMetadata(bool bListDetailedInfo);
 
     // List gathered writer status
-    void ListWriterStatus();
+    void ListWriterStatus(bool bMachineParseable);
 
     // Pre restore
     void PreRestore();
@@ -236,7 +242,7 @@ public:
     bool IsWriterSelected(GUID guidInstanceId);
 
     // Check the status for all selected writers
-    void CheckSelectedWriterStatus();
+    void CheckSelectedWriterStatus(bool bVerbose, bool bSilentlyIgnoreWriterFailures);
 
 
 private:
@@ -283,5 +289,8 @@ private:
 
     // TRUE if we are during restore
     bool                            m_bDuringRestore;
+
+	// TRUE if we should ignore failures to gather individual writer metadata
+	bool                            m_bIgnoreIndividualWriterGatherFailures;
 };
 
