@@ -218,12 +218,16 @@ inline bool IsEqual(wstring str1, wstring str2)
 
 // Returns TRUE if the string is already present in the string list  
 // (performs case insensitive comparison)
-inline bool FindStringInList(wstring str, vector<wstring> stringList)
+inline bool FindStringInList(wstring str, vector<wstring> stringList, bool isGUID)
 {
-    // Check to see if the volume is already added 
-    for (unsigned i = 0; i < stringList.size( ); i++)
-        if (IsEqual(str, stringList[i]))
-            return true;
+	// Check to see if the volume is already added 
+	for (unsigned i = 0; i < stringList.size(); i++)
+	{
+		if (IsEqual(str, stringList[i]))
+			return true;
+		if (isGUID && IsEqual(str, L"{" + stringList[i] + L"}"))
+			return true;
+	}
 
     return false;
 }

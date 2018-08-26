@@ -71,16 +71,32 @@ void VssClient::InitializeWriterMetadata()
     // Enumerate writers
     for (unsigned iWriter = 0; iWriter < cWriters; iWriter++)
     {
-        // Get the metadata for this particular writer
-        VSS_ID idInstance = GUID_NULL;
-        CComPtr<IVssExamineWriterMetadata> pMetadata;
-        CHECK_COM(m_pVssObject->GetWriterMetadata(iWriter, &idInstance, &pMetadata));
+		// The failure to gather the metadata for one particular writer should not prevent
+		// us from gathering the metadata for other writers that we can enumerate.
+		try
+		{
+			// Get the metadata for this particular writer
+			VSS_ID idInstance = GUID_NULL;
+			CComPtr<IVssExamineWriterMetadata> pMetadata;
+			CHECK_COM(m_pVssObject->GetWriterMetadata(iWriter, &idInstance, &pMetadata));
 
-        VssWriter   writer;
-        writer.Initialize(pMetadata);
+			VssWriter   writer;
+			writer.Initialize(pMetadata);
 
-        // Add this writer to the list 
-        m_writerList.push_back(writer);
+			// Add this writer to the list 
+			m_writerList.push_back(writer);
+		}
+		catch (HRESULT hr)
+		{
+			if (m_bIgnoreIndividualWriterGatherFailures)
+			{
+				ft.WriteLine(L"\nWARNING: Failed to gather metadata for writer %u (will continue gathering for other writers)\n", (unsigned int)iWriter);
+			}
+			else
+			{
+				throw hr;
+			}
+		}
     }
 }
 
@@ -584,10 +600,10 @@ void VssComponent::Initialize(wstring writerNameParam, IVssWMComponent * pCompon
     // Compute the affected paths and volumes
     for(unsigned i = 0; i < descriptors.size(); i++)
     {
-        if (!FindStringInList(descriptors[i].expandedPath, affectedPaths))
+        if (!FindStringInList(descriptors[i].expandedPath, affectedPaths, false))
             affectedPaths.push_back(descriptors[i].expandedPath);
 
-        if (!FindStringInList(descriptors[i].affectedVolume, affectedVolumes))
+        if (!FindStringInList(descriptors[i].affectedVolume, affectedVolumes, false))
             affectedVolumes.push_back(descriptors[i].affectedVolume);
     }
 

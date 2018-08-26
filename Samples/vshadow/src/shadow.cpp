@@ -37,7 +37,7 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
             L"\n"
             L"EFSVSS.EXE 2.2 - Volume Shadow Copy client.\n"
 			L"Portions copyright(C) 2005 Microsoft Corporation. All rights reserved.\n"
-			L"Portions copyright(C) 2017 eFolder Inc. All rights reserved.\n"
+			L"Portions copyright(C) 2017-2018 eFolder Inc. All rights reserved.\n"
 			L"\n");
         
         // Build the argument vector 
@@ -218,6 +218,14 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 			continue;
 		}
 
+		// Check for ignore gather writer metadata failure
+		if (MatchArgument(arguments[argIndex], L"iwgf"))
+		{
+			ft.WriteLine(L"(Option: Ignore Individual Writer Gather Failures)");
+			m_vssClient.SetIgnoreIndividualWriterGatherFailures(true);
+			continue;
+		}
+
         // Check for the command execution option
         if (MatchArgument(arguments[argIndex], L"exec", execCommand))
         {
@@ -354,7 +362,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.Initialize(VSS_CTX_ALL);
 
             // Gather writer metadata
-            m_vssClient.DeleteSnapshotSet(deletingSnapshotSetID);
+            m_vssClient.DeleteSnapshotSet(deletingSnapshotSetID, false);
 
             return 0;
         }
@@ -624,7 +632,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             try
             {
                 // Check selected writer status
-                m_vssClient.CheckSelectedWriterStatus();
+                m_vssClient.CheckSelectedWriterStatus(false, false);
 
                 // Executing the custom command if needed
                 if (execCommand.length() > 0)
@@ -649,7 +657,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.PostRestore();
 
             // Check selected writer status
-            m_vssClient.CheckSelectedWriterStatus();
+            m_vssClient.CheckSelectedWriterStatus(false, false);
 
             ft.WriteLine(L"\nRestore done.");
             
@@ -721,43 +729,57 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             dwContext = UpdateFinalContext(dwContext);
             m_vssClient.Initialize(dwContext);
 
-            // Create the shadow copy set
-            m_vssClient.CreateSnapshotSet(
-                volumeList, 
-                xmlBackupComponentsDoc, 
-                excludedWriterList,
-                includedWriterList
-                );
+			try
+			{
+				// Create the shadow copy set
+				m_vssClient.CreateSnapshotSet(
+					volumeList, 
+					xmlBackupComponentsDoc, 
+					excludedWriterList,
+					includedWriterList
+					);
 
-            try
-            {
-                // Generate management scripts if needed
-                if (stringFileName.length() > 0)
-                    m_vssClient.GenerateSetvarScript(stringFileName, stringSnapshotLevel);
+				try
+				{
+					// Generate management scripts if needed
+					if (stringFileName.length() > 0)
+						m_vssClient.GenerateSetvarScript(stringFileName, stringSnapshotLevel);
 
-                // Executing the custom command if needed
-                if (execCommand.length() > 0)
-                    ExecCommand(execCommand);
+					// Executing the custom command if needed
+					if (execCommand.length() > 0)
+						ExecCommand(execCommand);
 
-            }
-            catch(HRESULT)
-            {
-                // Mark backup failure and exit
-                if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
-                    m_vssClient.BackupComplete(false);
+				}
+				catch(HRESULT)
+				{
+					// Mark backup failure and exit
+					if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
+						m_vssClient.BackupComplete(false);
 
-                throw;
-            }
+					throw;
+				}
 
-            // Complete the backup
-            // Note that this will notify writers that the backup is succesful! 
-            // (which means eventually log truncation)
-            if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
-                m_vssClient.BackupComplete(true);
+				// Complete the backup
+				// Note that this will notify writers that the backup is succesful! 
+				// (which means eventually log truncation)
+				if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
+					m_vssClient.BackupComplete(true);
 
-            ft.WriteLine(L"\nSnapshot creation done.");
+				ft.WriteLine(L"\nSnapshot creation done.");
             
-            return 0;
+				return 0;
+			}
+			catch (...)
+			{
+				try
+				{
+					ft.WriteLine(L"\nFailed to fully create VSS snapshot, so ensuring that any half-created VSS snapshot gets deleted...");
+					m_vssClient.DeleteLatestSnapshotSet(true);
+				}
+				catch (...) {}
+				// It's important to rethrow the exception so normal error handling continues as before
+				throw;
+			}
         }
 
         // No match. Print an error and the usage
@@ -860,8 +882,9 @@ void CommandLineParser::PrintUsage()
         L"  -wi={Writer Name}  - Verify that a writer/component is included\n"
         L"  -wx={Writer Name}  - Exclude a writer/component from set creation or restore\n"
         L"  -script={file.cmd} - SETVAR script creation\n"
-		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script."
-        L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
+		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script.\n"
+		L"  -iwgf              - Ignore failure to gather metadata of one VSS writer.\n"
+		L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
         L"  -wait              - Wait before program termination or between shadow set break and make-it-write\n"
         L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n"
@@ -924,7 +947,8 @@ void CommandLineParser::PrintUsage()
         L"  -wx={Writer Name}  - Exclude a writer/component from set creation or restore\n"
         L"  -bc={file.xml}     - Generates the backup components document during shadow creation.\n"
         L"  -script={file.cmd} - SETVAR script creation\n"
-		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script."
+		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script.\n"
+		L"  -iwgf              - Ignore failure to gather metadata of one VSS writer.\n"
 		L"  -exec={command}    - Custom command executed after shadow creation\n"
         L"  -wait              - Wait before program termination \n"
         L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"

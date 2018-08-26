@@ -84,7 +84,7 @@ void VssClient::PrepareForBackup()
     WaitAndCheckForAsyncOperation(pAsync);
 
     // Check selected writer status
-    CheckSelectedWriterStatus();
+    CheckSelectedWriterStatus(false, false);
 }
 
 
@@ -136,8 +136,33 @@ void VssClient::DoSnapshotSet()
         return;
     }
 
-    // Check selected writer status
-    CheckSelectedWriterStatus();
+	try
+	{
+		// Check selected writer status
+		CheckSelectedWriterStatus(true, false);
+	}
+	catch (...)
+	{
+		try
+		{
+			// DoSnapshotSet succeeded, but checking writer status failed.
+			// We need to tell VSS that we consider the backup as failed.
+			// However, it's important to ignore failures as we do so.
+			ft.WriteLine(L"Telling VSS writers that we consider this VSS backup as failed...");
+			SetBackupSucceeded(false);
+			CComPtr<IVssAsync>  pAsyncBC;
+			if (S_OK == m_pVssObject->BackupComplete(&pAsyncBC))
+			{
+				WaitAndCheckForAsyncOperation(pAsyncBC);
+			}
+			// After calling BackupComplete, per VSS protocol we have to gather writer status again!
+			CheckSelectedWriterStatus(false, true);
+		}
+		catch (...) {}
+
+		// Make sure that we propagate the error checking writer status
+		throw;
+	}
 
     ft.WriteLine(L"Shadow copy set succesfully created.");
 }
@@ -153,16 +178,16 @@ void VssClient::BackupComplete(bool succeeded)
 
     if (cWriters == 0)
     {
-        ft.WriteLine(L"- There were no writer components in this backup");
+        ft.WriteLine(L"- There were no VSS writer components in this backup");
         return;
     } else if (succeeded)
-        ft.WriteLine(L"- Mark all writers as succesfully backed up... ");
+        ft.WriteLine(L"- Mark all VSS writers as successfully backed up... ");
     else
-        ft.WriteLine(L"- Backup failed. Mark all writers as not succesfully backed up... ");
+        ft.WriteLine(L"- VSS backup sequence failed. Mark all writers as not successfully backed up... ");
 
     SetBackupSucceeded(succeeded);
 
-    ft.WriteLine(L"Completing the backup (BackupComplete) ... ");
+    ft.WriteLine(L"Completing the VSS backup sequence (BackupComplete) ... ");
 
     CComPtr<IVssAsync>  pAsync;
     CHECK_COM(m_pVssObject->BackupComplete(&pAsync));
@@ -171,7 +196,7 @@ void VssClient::BackupComplete(bool succeeded)
     WaitAndCheckForAsyncOperation(pAsync);
 
     // Check selected writer status
-    CheckSelectedWriterStatus();
+    CheckSelectedWriterStatus(false, false);
 
 }
 
@@ -273,14 +298,26 @@ void VssClient::SetBackupSucceeded(bool succeeded)
             if (!component.isExplicitlyIncluded)
                 continue;
 
-            // Call SetBackupSucceeded for this component
-            CHECK_COM(m_pVssObject->SetBackupSucceeded(
-                WString2Guid(writer.instanceId),
-                WString2Guid(writer.id),
-                component.type,
-                component.logicalPath.c_str(),
-                component.name.c_str(),
-                succeeded));
+			try
+			{
+				// Call SetBackupSucceeded for this component
+				CHECK_COM(m_pVssObject->SetBackupSucceeded(
+					WString2Guid(writer.instanceId),
+					WString2Guid(writer.id),
+					component.type,
+					component.logicalPath.c_str(),
+					component.name.c_str(),
+					succeeded));
+			}
+			catch (HRESULT hr)
+			{
+				if (succeeded) {
+					// this error must propagate
+					throw hr;
+				}
+				// this is non-fatal for failed backups, keep trying to notify for all components
+				ft.WriteLine(L"WARNING: failed to notify backup failure for writer %s component %s %s\n", writer.id.c_str(), component.logicalPath.c_str(), component.name.c_str());
+			}
         }
     }
 }
