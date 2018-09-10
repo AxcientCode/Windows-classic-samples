@@ -24,13 +24,13 @@
     <ClInclude Include="main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WriterVolume.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ReplibitWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WriterVolume.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
