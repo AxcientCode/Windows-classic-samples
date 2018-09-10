@@ -3,7 +3,7 @@
 
 CWriterVolume::CWriterVolume()
     : m_zLength(0), m_hVolume(INVALID_HANDLE_VALUE), m_llNumberOfRecords(0), m_llBitmapSize(0), m_pBitmap(NULL) {
-    ZeroMemory(m_pwcVolumeName, m_zMaxVolumeNameLength);
+    ZeroMemory(m_pwcVolumeName, m_zMaxVolumeNameLength * sizeof(WCHAR));
     ZeroMemory(&m_nvdbData, sizeof(NTFS_VOLUME_DATA_BUFFER));
 }
 
@@ -14,7 +14,7 @@ CWriterVolume::CWriterVolume(size_t zLength, WCHAR* pwcVolumeName, HANDLE hVolum
       m_llNumberOfRecords(llNumberOfRecords),
       m_llBitmapSize(llBitmapSize),
       m_pBitmap(pBitmap) {
-    memcpy(m_pwcVolumeName, pwcVolumeName, zLength);
+    wcsncpy_s(m_pwcVolumeName, m_zMaxVolumeNameLength, pwcVolumeName, zLength);
     memcpy(&m_nvdbData, pnvdbData, sizeof(NTFS_VOLUME_DATA_BUFFER));
 }
 

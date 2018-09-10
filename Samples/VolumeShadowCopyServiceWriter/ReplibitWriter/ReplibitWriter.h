@@ -30,9 +30,10 @@ static const wchar_t *const pwcWriterName = L"Replibit Writer";
 
 class CReplibitWriter : public CVssWriter {
    private:
-       UINT m_uVolumeCount;
-       LPCWSTR* m_ppwcVolumeArray;
-       std::vector<CWriterVolume*> m_volumesVector;
+    UINT m_uVolumeCount;
+    LPCWSTR *m_ppwcVolumeArray;
+    std::vector<CWriterVolume *> m_volumeVector;
+    std::vector<CWriterVolume *> m_snapshotVector;
 
    public:
     // initialize all static variables
@@ -48,6 +49,7 @@ class CReplibitWriter : public CVssWriter {
     bool STDMETHODCALLTYPE OnPrepareSnapshot();
     bool InitializeWriterVolumes();
     bool CleanupWriterVolumes();
+    CWriterVolume *GatherVolumeInformation(LPCWSTR pwcVolumeName);
     bool STDMETHODCALLTYPE OnFreeze();
     bool STDMETHODCALLTYPE OnThaw();
     bool STDMETHODCALLTYPE OnPostSnapshot(_In_ IVssWriterComponents *pComponents);
