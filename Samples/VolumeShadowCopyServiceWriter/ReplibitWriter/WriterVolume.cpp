@@ -2,19 +2,17 @@
 #include "WriterVolume.h"
 
 CWriterVolume::CWriterVolume()
-    : m_zLength(0), m_hVolume(INVALID_HANDLE_VALUE), m_llNumberOfRecords(0), m_llBitmapSize(0), m_pBitmap(NULL) {
-    ZeroMemory(m_pwcVolumeName, m_zMaxVolumeNameLength * sizeof(WCHAR));
+    : m_hVolume(INVALID_HANDLE_VALUE), m_llClusterCount(0), m_llBitmapSize(0), m_pBitmap(nullptr) {
     ZeroMemory(&m_nvdbData, sizeof(NTFS_VOLUME_DATA_BUFFER));
 }
 
-CWriterVolume::CWriterVolume(size_t zLength, WCHAR* pwcVolumeName, HANDLE hVolume, NTFS_VOLUME_DATA_BUFFER* pnvdbData,
-                             LONGLONG llNumberOfRecords, LONGLONG llBitmapSize, PVOLUME_BITMAP_BUFFER pBitmap)
-    : m_zLength(zLength),
+CWriterVolume::CWriterVolume(std::wstring wsVolumeName, HANDLE hVolume, NTFS_VOLUME_DATA_BUFFER* pnvdbData,
+                             LONGLONG llClusterCount, LONGLONG llBitmapSize, CChunkBitmap* pBitmap)
+    : m_wsVolumeName(wsVolumeName),
       m_hVolume(hVolume),
-      m_llNumberOfRecords(llNumberOfRecords),
+      m_llClusterCount(llClusterCount),
       m_llBitmapSize(llBitmapSize),
       m_pBitmap(pBitmap) {
-    wcsncpy_s(m_pwcVolumeName, m_zMaxVolumeNameLength, pwcVolumeName, zLength);
     memcpy(&m_nvdbData, pnvdbData, sizeof(NTFS_VOLUME_DATA_BUFFER));
 }
 
@@ -25,7 +23,7 @@ CWriterVolume::~CWriterVolume() {
     }
 
     if (m_pBitmap) {
-        free(m_pBitmap);
-        m_pBitmap = NULL;
+        delete m_pBitmap;
+        m_pBitmap = nullptr;
     }
 }
