@@ -72,15 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)\..\..\..\..\agent\framework;$(SolutionDir)\..\..\..\..\CRoaringUnityBuild;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)\..\..\..\..\agent\framework;$(SolutionDir)\..\..\..\..\CRoaringUnityBuild;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)\..\..\..\..\agent\framework;$(SolutionDir)\..\..\..\..\CRoaringUnityBuild;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)\..\..\..\..\agent\framework;$(SolutionDir)\..\..\..\..\CRoaringUnityBuild;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -155,7 +159,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\agent\framework\ChunkBitmap.h" />
+    <ClInclude Include="..\..\..\..\agent\framework\ChunkBitmapRoaring.h" />
+    <ClInclude Include="..\..\..\..\agent\framework\ChunkBuffer.h" />
+    <ClInclude Include="..\..\..\..\agent\framework\ChunkDefinitions.h" />
+    <ClInclude Include="..\..\..\..\CRoaringUnityBuild\roaring.h" />
+    <ClInclude Include="..\..\..\..\CRoaringUnityBuild\roaring.hh" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="ReplibitWriter.h" />
     <ClInclude Include="targetver.h" />
@@ -163,6 +174,15 @@
     <ClInclude Include="WriterVolume.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\agent\framework\ChunkBitmap.cpp" />
+    <ClCompile Include="..\..\..\..\agent\framework\ChunkBitmapRoaring.cpp" />
+    <ClCompile Include="..\..\..\..\agent\framework\ChunkBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\CRoaringUnityBuild\roaring.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
