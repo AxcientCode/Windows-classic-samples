@@ -209,7 +209,7 @@ void CreateFileInDeviceTests(const std::wstring &wsDevice) {
     // Test 1: regular set end of file
     HANDLE hFile = INVALID_HANDLE_VALUE;
     const wchar_t pwcRegular[] = L"1-regular.txt";
-    const LONG lFileSize = 1024L * 1024L;
+    const LONG lFileSize = 10L * 1024L * 1024L;
     if (INVALID_HANDLE_VALUE != (hFile = CreateFileInDevice(CREATE_ALWAYS, wsDevice, pwcRegular))) {
         MoveFilePointer(hFile, lFileSize);
         TruncateFile(hFile);
