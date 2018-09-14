@@ -21,7 +21,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 static const wchar_t g_pwcBeforeFileName[] = L"VolumeBitmapBefore.bin";
-static const wchar_t g_pwcDifferencesFileName[] = L"DifferencesFound.txt";
+static const wchar_t g_pwcDifferencesFileName[] = L"DifferencesFound.bin";
 
 // Initialize the writer
 HRESULT STDMETHODCALLTYPE CReplibitWriter::Initialize() {
@@ -315,16 +315,9 @@ bool STDMETHODCALLTYPE CReplibitWriter::OnBackupShutdown(_In_ VSS_ID) {
                 CChunkBitmap *pBitmapBefore = m_volumeVector[zIndex]->m_pBitmap;
                 std::wstring wsFullPath;
                 GetFullPath(m_volumeVector[zIndex]->m_wsVolumeName, g_pwcDifferencesFileName, wsFullPath);
-                std::wofstream wofDifferences(wsFullPath, std::fstream::trunc);
-                if (wofDifferences.is_open()) {
-                    *pBitmapAfter -= *pBitmapBefore;
-                    int64_t i64Idx = -1;
-                    while (-1 != (i64Idx = pBitmapAfter->BitmapGetIndexOfFirstBitSet())) {
-                        wofDifferences << i64Idx << std::endl;
-                        pBitmapAfter->BitmapClear(i64Idx);
-                    }
+                *pBitmapAfter -= *pBitmapBefore;
+                if (pBitmapAfter->BitmapSave(wsFullPath)) {
                     wprintf(TEXT(__FUNCTION__ ": %s written.\r\n"), wsFullPath.c_str());
-                    wofDifferences.close();
                 } else {
                     strerror_s(pcMessage, zMessageLength, errno);
                     wprintf(TEXT(__FUNCTION__ ": Could not create file %s. (%S)\r\n"), wsFullPath.c_str(), pcMessage);
