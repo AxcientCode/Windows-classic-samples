@@ -16,7 +16,7 @@ bool GetNTFSvolumeData(HANDLE m_hVolume, NTFS_VOLUME_DATA_BUFFER &m_nvdbData) {
         m_nvdbData.NumberSectors.QuadPart++;  // Add hidden sector
         return true;
     } else {
-        wprintf(TEXT(__FUNCTION__) L"DeviceIoControl for FSCTL_GET_NTFS_VOLUME_DATA failed. (0x%08lx) \r\n",
+        _tprintf(TEXT(__FUNCTION__) L"DeviceIoControl for FSCTL_GET_NTFS_VOLUME_DATA failed. (0x%08lx) \r\n",
                 GetLastError());
     }
     return false;
@@ -77,17 +77,17 @@ bool GetAllocationBitmap(HANDLE hVolume, CChunkBitmap *pBitmap, CHUNK_BITMAP_SET
 }
 
 void GetFullPath(_In_ const std::wstring &wsDevice, _In_ const wchar_t *pwcFileName, _Out_ std::wstring &pwcFullPath) {
-    // wprintf(TEXT(__FUNCTION__ ": Begin. \r\n"));
+    // _tprintf(TEXT(__FUNCTION__ ": Begin. \r\n"));
     pwcFullPath = wsDevice;
     if (pwcFullPath[pwcFullPath.size() - 1] != L'\\') {
         pwcFullPath.push_back(L'\\');
     }
     pwcFullPath.append(pwcFileName);
-    // wprintf(TEXT(__FUNCTION__ ": End. \r\n"));
+    // _tprintf(TEXT(__FUNCTION__ ": End. \r\n"));
 }
 
 HANDLE CreateFileInDevice(DWORD dwDispotision, const std::wstring &wsDevice, const wchar_t *pwcFileName) {
-    // wprintf(TEXT(__FUNCTION__ ": Begin. \r\n"));
+    // _tprintf(TEXT(__FUNCTION__ ": Begin. \r\n"));
     std::wstring wsFullPath;
 
     GetFullPath(wsDevice, pwcFileName, wsFullPath);
@@ -95,16 +95,16 @@ HANDLE CreateFileInDevice(DWORD dwDispotision, const std::wstring &wsDevice, con
                                 NULL, dwDispotision, NULL, NULL);
 
     if (hFile == INVALID_HANDLE_VALUE) {
-        wprintf(TEXT(__FUNCTION__ ": CreateFile failed. (0x%08lx)\r\n"), GetLastError());
+        _tprintf(TEXT(__FUNCTION__ ": CreateFile failed. (0x%08lx)\r\n"), GetLastError());
     }
-    // wprintf(TEXT(__FUNCTION__ ": End. \r\n"));
+    // _tprintf(TEXT(__FUNCTION__ ": End. \r\n"));
     return hFile;
 }
 
 bool MoveFilePointer(HANDLE hFile, LONG lPosition) {
     if (INVALID_SET_FILE_POINTER == SetFilePointer(hFile, lPosition, NULL, FILE_BEGIN)) {
-        wprintf(TEXT(__FUNCTION__ ": SetFilePointer failed. (0x%08lx)\r\n"), GetLastError());
-        // wprintf(TEXT(__FUNCTION__ ": End. \r\n"));
+        _tprintf(TEXT(__FUNCTION__ ": SetFilePointer failed. (0x%08lx)\r\n"), GetLastError());
+        // _tprintf(TEXT(__FUNCTION__ ": End. \r\n"));
         return false;
     }
     return true;
@@ -112,16 +112,16 @@ bool MoveFilePointer(HANDLE hFile, LONG lPosition) {
 
 bool TruncateFile(HANDLE hFile) {
     if (!SetEndOfFile(hFile)) {
-        wprintf(TEXT(__FUNCTION__ ": SetEndOfFile failed. (0x%08lx)\r\n"), GetLastError());
-        // wprintf(TEXT(__FUNCTION__ ": End. \r\n"));
+        _tprintf(TEXT(__FUNCTION__ ": SetEndOfFile failed. (0x%08lx)\r\n"), GetLastError());
+        // _tprintf(TEXT(__FUNCTION__ ": End. \r\n"));
         return false;
     }
     return true;
 }
 
 bool SetSparseFlag(HANDLE hFile, BOOL bSetSparse) {
-    // wprintf(TEXT(__FUNCTION__ ": Begin. \r\n"));
-    // wprintf(L"Setting sparse flag to: %s \n", bSetSparse ? L"true" : L"false");
+    // _tprintf(TEXT(__FUNCTION__ ": Begin. \r\n"));
+    // _tprintf(L"Setting sparse flag to: %s \n", bSetSparse ? L"true" : L"false");
     FILE_SET_SPARSE_BUFFER fssBuffer = {0};
     fssBuffer.SetSparse = bSetSparse;
     DWORD dwBytesReturned = 0;
@@ -134,10 +134,10 @@ bool SetSparseFlag(HANDLE hFile, BOOL bSetSparse) {
                          &dwBytesReturned,   // number of bytes returned
                          NULL))              // OVERLAPPED structure
     {
-        wprintf(L"DeviceIoControl failed for FSCTL_SET_SPARSE. (0x%08lx)\n", GetLastError());
-        // wprintf(TEXT(__FUNCTION__ ": End. \r\n"));
+        _tprintf(L"DeviceIoControl failed for FSCTL_SET_SPARSE. (0x%08lx)\n", GetLastError());
+        // _tprintf(TEXT(__FUNCTION__ ": End. \r\n"));
         return false;
     }
-    // wprintf(TEXT(__FUNCTION__ ": End. \r\n"));
+    // _tprintf(TEXT(__FUNCTION__ ": End. \r\n"));
     return true;
 }

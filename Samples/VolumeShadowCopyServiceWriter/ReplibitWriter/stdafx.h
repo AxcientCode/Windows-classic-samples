@@ -25,5 +25,6 @@ Abstract:
 #include "vss.h"
 #include <vswriter.h>
 #include <stddef.h>
-#include <wchar.h>
+#include <tchar.h>
+
 #endif  // __VSS_STDAFX_HXX__
