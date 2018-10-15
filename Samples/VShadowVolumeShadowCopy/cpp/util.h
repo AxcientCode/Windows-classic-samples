@@ -359,6 +359,13 @@ inline wstring GetUniqueVolumeNameForPath(wstring path, bool bIsBackup=false)
                 WString2Buffer(volumeUniqueName),
                 &cchVolumeUniqueName);
 
+            if (ERROR_PATH_NOT_FOUND == dwRet &&
+                _wcsnicmp(path.c_str(), NONE_UNC_PATH_PREFIX1, wcslen(NONE_UNC_PATH_PREFIX1)) == 0) {
+                volumeRootPath = path;
+                volumeUniqueName = path;
+                dwRet = ERROR_SUCCESS;
+            }
+
             CHECK_WIN32_ERROR(dwRet, "ClusterPrepareSharedVolumeForBackup");
 
             ft.Trace(DBG_INFO, L"- Path name: %s ...", volumeRootPath.c_str());
