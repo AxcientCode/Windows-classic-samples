@@ -354,6 +354,16 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             continue;
         }
 
+        // Check for the providerID option
+        wstring providerId;
+        if (MatchArgument(arguments[argIndex], L"pi", providerId))
+        {
+            ft.WriteLine(L"(Option: ProviderID set to %s)", providerId);
+            m_vssClient.SetProviderId(WString2Guid(providerId));
+          
+            continue;
+        }
+
         //
         //  Operations 
         //
@@ -1074,6 +1084,7 @@ void CommandLineParser::PrintUsage()
 		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script.\n"
 		L"  -iwgf              - Ignore failure to gather metadata of one VSS writer.\n"
 		L"  -exec={command}    - Custom command executed after shadow creation, import or between break and make-it-write\n"
+		L"  -pi={ProviderID}   - Use provider with a ProviderID guid\n"
         L"  -wait              - Wait before program termination or between shadow set break and make-it-write\n"
         L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n" );
@@ -1149,6 +1160,7 @@ void CommandLineParser::PrintUsage()
 		L"  -snaplevel={...}   - User-specified snapshot level that will be set in the SETVAR script.\n"
 		L"  -iwgf              - Ignore failure to gather metadata of one VSS writer.\n"
 		L"  -exec={command}    - Custom command executed after shadow creation\n"
+		L"  -pi={ProviderID}   - Use provider with a ProviderID guid\n"
         L"  -wait              - Wait before program termination \n"
         L"  -tracing           - Runs EFSVSS.EXE with enhanced diagnostics\n"
         L"\n"

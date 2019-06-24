@@ -107,7 +107,7 @@ void VssClient::AddToSnapshotSet(vector<wstring> volumeList)
             GetDisplayNameForVolume(volume).c_str());
 
         VSS_ID SnapshotID;
-        CHECK_COM(m_pVssObject->AddToSnapshotSet((LPWSTR)volume.c_str(), GUID_NULL, &SnapshotID));
+        CHECK_COM(m_pVssObject->AddToSnapshotSet((LPWSTR)volume.c_str(), m_providerId, &SnapshotID));
 
         // Preserve this shadow ID for script generation 
         m_latestSnapshotIdList.push_back(SnapshotID);
