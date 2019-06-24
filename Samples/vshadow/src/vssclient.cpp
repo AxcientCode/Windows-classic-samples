@@ -25,6 +25,7 @@ VssClient::VssClient()
     m_bDuringRestore = false;
     m_backupType = VSS_BT_FULL;
 	m_bIgnoreIndividualWriterGatherFailures = false;
+	m_providerId = GUID_NULL;
 }
 
 
@@ -49,6 +50,11 @@ void VssClient::SetBackupType(VSS_BACKUP_TYPE backupType)
 void VssClient::SetIgnoreIndividualWriterGatherFailures(bool v)
 {
 	m_bIgnoreIndividualWriterGatherFailures = v;
+}
+
+void VssClient::SetProviderId(VSS_ID providerId)
+{
+	m_providerId = providerId;
 }
 
 // Initialize the COM infrastructure and the internal pointers
