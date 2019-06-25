@@ -358,7 +358,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
         wstring providerId;
         if (MatchArgument(arguments[argIndex], L"pi", providerId))
         {
-            ft.WriteLine(L"(Option: ProviderID set to %s)", providerId);
+            ft.WriteLine(L"(Option: ProviderID set to %s)", providerId.c_str());
             m_vssClient.SetProviderId(WString2Guid(providerId));
           
             continue;
