@@ -45,6 +45,9 @@ public:
 	// Set whether or not to ignore failures to gather metadata of individual VSS writers
 	void SetIgnoreIndividualWriterGatherFailures(bool v);
 
+	// Set VSS provider ID
+	void SetProviderId(VSS_ID providerId);
+
     // Method to create a shadow copy set with the given volumes
     void CreateSnapshotSet(
         vector<wstring> volumeList, 
@@ -303,5 +306,8 @@ private:
 
 	// TRUE if we should ignore failures to gather individual writer metadata
 	bool                            m_bIgnoreIndividualWriterGatherFailures;
+
+	// VSS provider GUID
+	VSS_ID m_providerId;
 };
 
