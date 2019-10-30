@@ -168,7 +168,7 @@ public:
     void InitializeWriterComponentsForRestore();
 
     // List gathered writer metadata
-    void ListWriterMetadata(bool bListDetailedInfo);
+    void ListWriterMetadata(bool bListDetailedInfo, const bool toFile);
 
     // List gathered writer status
     void ListWriterStatus(bool bMachineParseable);
