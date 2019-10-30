@@ -44,7 +44,7 @@ struct VssFileDescriptor
         );
 
     // Print this file descriptor 
-    void Print();
+    void Print(FILE* stream);
 
     // Get the string representation of the type
     wstring GetStringFromFileDescriptorType(VSS_DESCRIPTOR_TYPE eType);
@@ -81,7 +81,7 @@ struct VssDependency
         );
 
     // Print this dependency
-    void Print();
+    void Print(FILE* stream);
 
     //
     //  Data members
@@ -118,7 +118,7 @@ struct VssComponent
     void Initialize(wstring writerNameParam, IVssComponent * pComponent);
 
     // Print summary/detalied information about this component
-    void Print(bool bListDetailedInfo);
+    void Print(bool bListDetailedInfo, FILE* stream);
 
     // Convert a component type into a string
     wstring GetStringFromComponentType(VSS_COMPONENT_TYPE eComponentType);
@@ -176,7 +176,7 @@ struct VssWriter
     void InitializeComponentsForRestore(IVssWriterComponentsExt * pWriterComponents);
 
     // Print summary/detalied information about this writer
-    void Print(bool bListDetailedInfo);
+    void Print(bool bListDetailedInfo, FILE* stream);
 
     wstring GetStringFromRestoreMethod(VSS_RESTOREMETHOD_ENUM eRestoreMethod);
 

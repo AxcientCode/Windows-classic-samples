@@ -158,8 +158,10 @@ public:
     // Initialize the list of writers and components for restore
     void InitializeWriterComponentsForRestore();
 
+    static std::wstring MakeMetaFileName(const std::wstring & name, const unsigned index, const std::wstring & ext);
+
     // List gathered writer metadata
-    void ListWriterMetadata(bool bListDetailedInfo);
+    void ListWriterMetadata(bool bListDetailedInfo, const bool toFile);
 
     // List gathered writer status
     void ListWriterStatus(bool bMachineParseable);

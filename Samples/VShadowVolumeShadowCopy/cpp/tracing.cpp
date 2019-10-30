@@ -51,7 +51,7 @@ void FunctionTracer::Trace(wstring file, int line, wstring functionName, wstring
         wstring fileName = (pos == wstring::npos)? file: file.substr(pos+1);
 
         // TODO - put here your own implementation of a tracing routine, if needed
-        fwprintf(m_stream, L"[[%40s @ %10s:%4d]] %s\n", functionName.c_str(), fileName.c_str(), line, buffer.c_str());
+        wprintf(L"[[%40s @ %10s:%4d]] %s\n", functionName.c_str(), fileName.c_str(), line, buffer.c_str());
     }
 }
 

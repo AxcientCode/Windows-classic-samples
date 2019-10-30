@@ -108,6 +108,9 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
     // The backup components document
     wstring xmlBackupComponentsDoc;
 
+    // Writes wm2 output to file
+    bool toFile = false;
+
     // Enumerate each argument
     for(unsigned argIndex = 0; argIndex < arguments.size(); argIndex++)
     {
@@ -284,6 +287,13 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             continue;
         }
 
+        if (MatchArgument(arguments[argIndex], L"tf"))
+        {
+            ft.WriteLine(L"(Option: List writer metadata to file %s)", providerId.c_str());
+            toFile = true;
+            continue;
+        }
+
         //
         //  Operations 
         //
@@ -406,7 +416,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.GatherWriterMetadata();
 
             // List summary writer metadata
-            m_vssClient.ListWriterMetadata(false);
+            m_vssClient.ListWriterMetadata(false, false);
 
             return 0;
         }
@@ -424,7 +434,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.GatherWriterMetadata();
 
             // List writer metadata
-            m_vssClient.ListWriterMetadata(true);
+            m_vssClient.ListWriterMetadata(true, toFile);
 
             return 0;
         }
@@ -905,6 +915,7 @@ void CommandLineParser::PrintUsage()
 		L"  -wsmp              - List writer status (machine parseable)\n"
 		L"  -wm                - List writer summary metadata\n"
         L"  -wm2               - List writer detailed metadata\n"
+        L"  -tf                - Write -wm2 option to one individual file per writer\n"
         L"  -q                 - List all shadow copies in the system\n"
         L"  -qx={SnapSetID}    - List all shadow copies in this set\n"
         L"  -s={SnapID}        - List the shadow copy with the given ID\n"
@@ -971,6 +982,7 @@ void CommandLineParser::PrintUsage()
 		L"  -wsmp              - List writer status (machine parseable)\n"
 		L"  -wm                - List writer summary metadata\n"
         L"  -wm2               - List writer detailed metadata\n"
+        L"  -tf                - Write -wm2 option to one individual file per writer\n"
         L"  -q                 - List all shadow copies in the system\n"
         L"  -qx={SnapSetID}    - List all shadow copies in this set\n"
         L"  -s={SnapID}        - List the shadow copy with the given ID\n"
