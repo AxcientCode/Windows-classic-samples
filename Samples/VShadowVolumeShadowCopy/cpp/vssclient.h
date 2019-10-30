@@ -155,7 +155,8 @@ public:
 
     // Gather writer metadata
     void GatherWriterMetadata(bool bSkipDetails=false);
-    void GatherWriterMetadataToScreen();
+    void GatherWriterMetadataToScreen(const bool toFile);
+    static std::wstring MakeMetaFileName(const std::wstring & name, const unsigned index, const std::wstring & ext);
 
     // Gather writer status
     void GatherWriterStatus();

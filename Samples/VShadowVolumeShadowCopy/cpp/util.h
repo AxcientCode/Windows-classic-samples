@@ -766,3 +766,34 @@ struct ltguid
                (guid1.Data1 == guid2.Data1 && guid1.Data2 == guid2.Data2 && guid1.Data3 < guid2.Data3);
     }
 };
+
+// creates exception when error ocurrs
+inline void ThrowErrnoEx(const errno_t err) {
+    const size_t maxMessageSize = 256;
+    char message[maxMessageSize] = { L'\0' };
+    strerror_s(message, maxMessageSize, err);
+    throw std::exception(message);
+}
+
+// RAII-style FILE* wrapper
+class FilePointer {
+   public:
+    FilePointer(wchar_t const* _FileName, wchar_t const* _Mode) {
+        auto m_errno = _wfopen_s(&m_fd, _FileName, _Mode);
+        if (m_errno) {
+            m_fd = nullptr;
+            ThrowErrnoEx(m_errno);
+        }
+    }
+    ~FilePointer() {
+        if (m_fd) {
+            fclose(m_fd);
+        }
+    }
+    operator FILE*() const { return m_fd; }
+    errno_t get_errno() { return m_errno; }
+
+   protected:
+    FILE* m_fd;
+    errno_t m_errno;
+};
