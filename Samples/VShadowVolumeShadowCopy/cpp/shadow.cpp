@@ -127,6 +127,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
     DWORD dwBreakExFlags = 0;
 
     DWORD dwResyncFlags = 0;
+    bool toFile = false;
 
     // Enumerate each argument
     for(unsigned argIndex = 0; argIndex < arguments.size(); argIndex++)
@@ -364,6 +365,13 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             continue;
         }
 
+        if (MatchArgument(arguments[argIndex], L"tf"))
+        {
+            ft.WriteLine(L"(Option: List writer metadata to file %s)", providerId.c_str());
+            toFile = true;
+            continue;
+        }
+
         //
         //  Operations 
         //
@@ -518,7 +526,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.Initialize(dwContext);
 
             // Gather writer metadata
-            m_vssClient.GatherWriterMetadataToScreen();
+            m_vssClient.GatherWriterMetadataToScreen(toFile);
 
             return 0;
         }

@@ -14,6 +14,8 @@
 // Main header
 #include "stdafx.h"
 
+#include <iomanip>
+#include <sstream>
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -44,8 +46,17 @@ void VssClient::GatherWriterMetadata(bool bSkipDetails)
 	}
 }
 
+std::wstring VssClient::MakeMetaFileName(const std::wstring& name, const unsigned index, const std::wstring& ext) {
+    std::wstringstream wss;
+    wss << name;
+    wss << std::setfill(L'0');
+    wss << setw(3);
+    wss << index;
+    wss << ext;
+    return wss.str();
+}
 
-void VssClient::GatherWriterMetadataToScreen()
+void VssClient::GatherWriterMetadataToScreen(const bool toFile)
 {
     FunctionTracer ft(DBG_INFO);
 
@@ -74,9 +85,19 @@ void VssClient::GatherWriterMetadataToScreen()
 			CComPtr<IVssExamineWriterMetadata> pMetadata;
 			CHECK_COM(m_pVssObject->GetWriterMetadata(iWriter, &idInstance, &pMetadata));
 
-			CHECK_COM(pMetadata->SaveAsXML(&bstrXML));
-			wprintf(L"\n--[Writer %u]--\n%s\n", iWriter, (LPCWSTR)(bstrXML));
+            CHECK_COM(pMetadata->SaveAsXML(&bstrXML));
+            if (toFile) {
+                const std::wstring fname = MakeMetaFileName(L".\\writer", iWriter, L".xml");
+                FilePointer fd(fname.c_str(), L"wb");
+                fwprintf(fd, L"%s", (LPCWSTR)(bstrXML));
+            }
+            else {
+                wprintf(L"\n--[Writer %u]--\n%s\n", iWriter, (LPCWSTR)(bstrXML));
+            }
 		}
+        catch (const std::exception& e) {
+            ft.WriteLine(L"\nWARNING: Failed to store writer metadata to file for writer %u (will continue with others)\n", iWriter);
+        }
 		catch (HRESULT hr)
 		{
 			if (m_bIgnoreIndividualWriterGatherFailures)
@@ -90,7 +111,9 @@ void VssClient::GatherWriterMetadataToScreen()
 		}
     }
 
-    wprintf(L"--[end of data]--\n");
+    if (!toFile) {
+        wprintf(L"--[end of data]--\n");
+    }
 }
 
 // Gather writers status
