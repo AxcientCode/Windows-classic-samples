@@ -96,7 +96,7 @@ void VssClient::GatherWriterMetadataToScreen(const bool toFile)
             }
 		}
         catch (const std::exception& e) {
-            ft.WriteLine(L"\nWARNING: Failed to store writer metadata to file for writer %u (will continue with others)\n", iWriter);
+            ft.WriteLine(L"\nWARNING: Failed to store writer metadata to file for writer %u. (%S)\n", iWriter, e.what());
         }
 		catch (HRESULT hr)
 		{
@@ -232,20 +232,27 @@ void VssClient::InitializeWriterComponentsForRestore()
     }
 }
 
-
 // Lists the writer metadata
-void VssClient::ListWriterMetadata(bool bListDetailedInfo)
-{
+void VssClient::ListWriterMetadata(bool bListDetailedInfo, const bool toFile) {
     FunctionTracer ft(DBG_INFO);
 
-    ft.WriteLine(L"Listing writer metadata ...");   
-    
+    ft.WriteLine(L"Listing writer metadata ...");
+
     // Enumerate writers
-    for (unsigned iWriter = 0; iWriter < m_writerList.size(); iWriter++)
-        m_writerList[iWriter].Print(bListDetailedInfo);
+    for (unsigned iWriter = 0; iWriter < m_writerList.size(); iWriter++) {
+        if (toFile) {
+            try {
+                const std::wstring fname = MakeMetaFileName(L".\\writer", iWriter, L".txt");
+                FilePointer fd(fname.c_str(), L"w, ccs=UTF-16LE");
+                m_writerList[iWriter].Print(bListDetailedInfo, fd);
+            } catch (const std::exception& e) {
+                ft.WriteLine(L"\nWARNING: Failed to store writer metadata to file for writer %u. (%S)\n", iWriter, e.what());
+            }
+        } else {
+            m_writerList[iWriter].Print(bListDetailedInfo, stdout);
+        }
+    }
 }
-
-
 
 // Lists the status for all writers
 void VssClient::ListWriterStatus(bool bMachineParseable)
@@ -506,9 +513,9 @@ void VssWriter::InitializeComponentsForRestore(IVssWriterComponentsExt * pWriter
 
 
 // Prints the writer to the console
-void VssWriter::Print(bool bListDetailedInfo)
+void VssWriter::Print(bool bListDetailedInfo, FILE* stream)
 {
-    FunctionTracer ft(DBG_INFO);
+    FunctionTracer ft(DBG_INFO, stream);
 
     // Print writer identity information
     ft.WriteLine(L"\n"
@@ -531,11 +538,11 @@ void VssWriter::Print(bool bListDetailedInfo)
     // Print exclude files
     ft.WriteLine(L"    - Excluded files:");
     for(unsigned i = 0; i < excludedFiles.size(); i++)
-        excludedFiles[i].Print();
+        excludedFiles[i].Print(stream);
 
     // Enumerate components
     for(unsigned i = 0; i < components.size(); i++)
-        components[i].Print(bListDetailedInfo);
+        components[i].Print(bListDetailedInfo, stream);
 }
 
 
@@ -710,9 +717,9 @@ void VssComponent::Initialize(wstring writerNameParam, IVssComponent * pComponen
 
 
 // Print summary/detalied information about this component
-void VssComponent::Print(bool bListDetailedInfo)
+void VssComponent::Print(bool bListDetailedInfo, FILE* stream)
 {
-    FunctionTracer ft(DBG_INFO);
+    FunctionTracer ft(DBG_INFO, stream);
 
     // Print writer identity information
     ft.WriteLine(L"    - Component \"%s\"\n"
@@ -740,7 +747,7 @@ void VssComponent::Print(bool bListDetailedInfo)
     {
         ft.WriteLine(L"       - Components:");
         for(unsigned i = 0; i < descriptors.size(); i++)
-            descriptors[i].Print();
+            descriptors[i].Print(stream);
     }
 
     // Print the affected paths and volumes
@@ -766,7 +773,7 @@ void VssComponent::Print(bool bListDetailedInfo)
 
     ft.WriteLine(L"       - Component Dependencies:");
     for(unsigned i = 0; i < dependencies.size(); i++)
-        dependencies[i].Print();
+        dependencies[i].Print(stream);
 
 #endif 
 }
@@ -882,9 +889,9 @@ void VssFileDescriptor::Initialize(
 
 
 // Print a file description object
-inline void VssFileDescriptor::Print()
+inline void VssFileDescriptor::Print(FILE* stream)
 {
-    FunctionTracer ft(DBG_INFO);
+    FunctionTracer ft(DBG_INFO, stream);
 
     wstring alternateDisplayPath;
     if (alternatePath.length() > 0)
@@ -957,9 +964,9 @@ void VssDependency::Initialize(
 
 
 // Print a file description object
-inline void VssDependency::Print()
+inline void VssDependency::Print(FILE* stream)
 {
-    FunctionTracer ft(DBG_INFO);
+    FunctionTracer ft(DBG_INFO, stream);
 
     ft.WriteLine(L"       - Dependency to \"%s:%s%s\"",
         writerId.c_str(), 

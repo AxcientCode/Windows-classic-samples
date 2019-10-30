@@ -25,6 +25,8 @@ class FunctionTracer
 {
 public:
     FunctionTracer(wstring fileName, INT lineNumber, wstring functionName);
+    FunctionTracer(wstring fileName, INT lineNumber, wstring functionName, FILE* stream);
+    void CommonConstructor();
     ~FunctionTracer();
     
     // tracing routine
@@ -50,6 +52,6 @@ private:
     wstring     m_fileName;
     int         m_lineNumber;
     wstring     m_functionName;
-
+    FILE*       m_stream;
 };
 

@@ -494,7 +494,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.GatherWriterMetadata();
 
             // List summary writer metadata
-            m_vssClient.ListWriterMetadata(false);
+            m_vssClient.ListWriterMetadata(false, toFile);
 
             return 0;
         }
@@ -512,7 +512,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             m_vssClient.GatherWriterMetadata();
 
             // List writer metadata
-            m_vssClient.ListWriterMetadata(true);
+            m_vssClient.ListWriterMetadata(true, toFile);
 
             return 0;
         }
