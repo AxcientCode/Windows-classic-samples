@@ -33,7 +33,7 @@ void FunctionTracer::WriteLine(wstring format, ...)
     wstring buffer;
     VPRINTF_VAR_PARAMS(buffer, format);
 
-    wprintf(L"%s\n", buffer.c_str());
+    fwprintf(m_stream, L"%s\n", buffer.c_str());
     Trace(m_fileName, m_lineNumber, m_functionName, L"OUTPUT: %s", buffer.c_str());
 }
 
@@ -58,7 +58,18 @@ void FunctionTracer::Trace(wstring file, int line, wstring functionName, wstring
 
 // Constructor
 FunctionTracer::FunctionTracer(wstring fileName, INT lineNumber, wstring functionName):
-    m_fileName(fileName), m_lineNumber(lineNumber), m_functionName(functionName)
+    m_fileName(fileName), m_lineNumber(lineNumber), m_functionName(functionName), m_stream(stdout)
+{
+    CommonConstructor();
+}
+
+FunctionTracer::FunctionTracer(wstring fileName, INT lineNumber, wstring functionName, FILE * stream) :
+    m_fileName(fileName), m_lineNumber(lineNumber), m_functionName(functionName), m_stream(stream)
+{
+    CommonConstructor();
+}
+
+void FunctionTracer::CommonConstructor()
 {
     if (m_traceEnabled)
         Trace(m_fileName, m_lineNumber, m_functionName, L"ENTER %s", m_functionName.c_str());
