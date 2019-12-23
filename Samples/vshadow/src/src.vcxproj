@@ -206,12 +206,16 @@
     <ClInclude Include="..\inc\xp\vss.h" />
     <ClInclude Include="..\inc\xp\vswriter.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="shadow.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="tracing.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vssclient.h" />
     <ClInclude Include="writer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="vshadow.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
