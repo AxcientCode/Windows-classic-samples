@@ -106,5 +106,11 @@
     <ClInclude Include="..\inc\xp\vswriter.h">
       <Filter>External headers\XP</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="vshadow.rc" />
   </ItemGroup>
 </Project>
