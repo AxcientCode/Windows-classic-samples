@@ -68,7 +68,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "eFolder, Inc."
             VALUE "FileDescription", "Replibit Shadow Copy Requestor"
-            VALUE "FileVersion", "6.3.0.18000"
+            VALUE "FileVersion", "2.25.0.0"
             VALUE "InternalName", "efsvss-2003.exe"
             VALUE "LegalCopyright", "Copyright (C) 2016-2019 eFolder, Inc. All Rights Reserved."
             VALUE "OriginalFilename", "efsvss-2003.exe"
