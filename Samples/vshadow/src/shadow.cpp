@@ -14,7 +14,42 @@
 // Main header
 #include "stdafx.h"
 
+using Buffer = std::vector<uint8_t>;
 
+Buffer callGetUserObjectInformation(const HANDLE object, const int index) noexcept {
+    constexpr size_t start_size = 50;
+    std::vector<uint8_t> temp(start_size);
+    const auto pointer = reinterpret_cast<void*>(temp.data());
+
+    auto size_needed = static_cast<DWORD>(temp.size());
+    BOOL got = FALSE;
+    do {
+        got = ::GetUserObjectInformation(
+            object,       // HANDLE  hObj,
+            index,        // int     nIndex,
+            pointer,      // PVOID   pvInfo,
+            temp.size(),  // DWORD   nLength,
+            &size_needed  // LPDWORD lpnLengthNeeded
+        );
+        temp.resize(static_cast<size_t>(size_needed));
+    } while (got == FALSE);
+
+    if (got == FALSE) {
+        return Buffer{};
+    }
+
+    return temp;
+}
+
+std::wstring getObjectName(const HANDLE object) {
+    auto got = callGetUserObjectInformation(object, UOI_NAME);
+    if (got.empty()) {
+        return std::wstring{};
+    }
+
+    const auto chars = reinterpret_cast<wchar_t*>(got.data());
+    return std::wstring(chars);
+}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -39,7 +74,18 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
 			L"Portions copyright(C) 2005 Microsoft Corporation. All rights reserved.\n"
 			L"Portions copyright(C) 2017-2018 eFolder Inc. All rights reserved.\n"
 			L"\n");
-        
+
+        // here
+        const auto this_station = ::GetProcessWindowStation();
+        const auto station_name = getObjectName(this_station);
+
+        const auto this_thread = GetCurrentThreadId();
+        const auto this_desktop = GetThreadDesktop(this_thread);
+        const auto desktop_name = getObjectName(this_desktop);
+
+        const auto desktop_full_name = station_name + L"\\" + desktop_name;
+        ft.WriteLine(L"Executing on desktop: %s\n", desktop_full_name.c_str());
+
         // Build the argument vector 
         vector<wstring> arguments;
         for(int i = 1; i < argc; i++)
