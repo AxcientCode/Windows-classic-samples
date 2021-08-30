@@ -45,7 +45,6 @@ public:
     //  Shadow copy creation related methods
     //
 
-
     // Backup type setter
     void SetBackupType(VSS_BACKUP_TYPE backupType);
 
