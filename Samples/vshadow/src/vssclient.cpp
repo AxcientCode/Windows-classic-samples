@@ -119,7 +119,10 @@ void VssClient::Initialize(DWORD dwContext, wstring xmlDoc, bool bDuringRestore)
     CHECK_COM(m_pVssObject->SetBackupState(true, true, m_backupType, false));
 }
 
-
+HRESULT VssClient::IsVolumeSupported(VSS_PWSZ pwszVolumeName, BOOL* pbSupportedByThisProvider)
+{
+    return m_pVssObject->IsVolumeSupported(GUID_NULL, pwszVolumeName, pbSupportedByThisProvider);
+}
 
 // Waits for the completion of the asynchronous operation
 void VssClient::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
