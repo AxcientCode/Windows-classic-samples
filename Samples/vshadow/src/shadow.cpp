@@ -13,6 +13,7 @@
 
 // Main header
 #include "stdafx.h"
+#include <vsserror.h>
 
 
 
@@ -617,7 +618,6 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             return 0;
         }
 #endif
-
         // Perform a support check
         if (MatchArgument(arguments[argIndex], L"isup")) //wsSnapIdDest
         {
@@ -628,15 +628,19 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 
             WCHAR volume_path_name[MAX_PATH];
             BOOL supported = TRUE;
-            BOOL bWorked = ::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH);
 
-            HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
+            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH == FALSE))
+            {
+                return short(VSS_E_MISSING_DISK);
+            }
+
+            const HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
 
             const wstring result_phrase = L"\nSupported check is done, supported: %i, enum value: %i";
-            auto trunked = short(is_supported_result);
+            const auto trunked = short(is_supported_result);
 
             ft.WriteLine(result_phrase, supported, trunked);
-            if (!supported)
+            if (supported == FALSE)
             {
                 return short(VSS_E_VOLUME_NOT_SUPPORTED);
             }
@@ -1011,7 +1015,8 @@ void CommandLineParser::PrintUsage()
         L"  -tf                - Write -wm2 option to one individual file per writer\n"
         L"  -q                 - List all shadow copies in the system\n"
         L"  -qx={SnapSetID}    - List all shadow copies in this set\n"
-        L"  -s={SnapID}        - List the shadow copy with the given ID\n"
+        L"  -s={SnapID}        - List the shadow copy with the given ID\n"        
+        L"  -isup path         - Check if volume path is supported by VSS\n"
         L"  -da                - Deletes all shadow copies in the system\n"
         L"  -dx={SnapSetID}    - Deletes all shadow copies in this set\n"
         L"  -ds={SnapID}       - Deletes this shadow copy\n"
