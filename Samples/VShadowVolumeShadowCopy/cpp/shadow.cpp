@@ -738,7 +738,12 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 
             WCHAR volume_path_name[MAX_PATH];
             BOOL supported = TRUE;
-            ::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH);
+            BOOL path_gotten = ::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH);
+
+            if (!path_gotten)
+            {
+                return short(VSS_E_UNEXPECTED_PROVIDER_ERROR);
+            }
 
             HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
 
