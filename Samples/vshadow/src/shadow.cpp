@@ -631,9 +631,8 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 
             if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH == FALSE)
             {
-                return short(VSS_E_UNEXPECTED_PROVIDER_ERROR);
+                return short(VSS_E_MISSING_DISK);
             }
-
 
             HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
 
@@ -643,7 +642,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             ft.WriteLine(result_phrase, supported, trunked);
             if (!supported)
             {
-                return short(VSS_E_MISSING_DISK);
+                return short(VSS_E_VOLUME_NOT_SUPPORTED);
             }
             return trunked;
         }
