@@ -629,7 +629,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             WCHAR volume_path_name[MAX_PATH];
             BOOL supported = TRUE;
 
-            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH == FALSE))
+            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH) == FALSE)
             {
                 return short(VSS_E_MISSING_DISK);
             }
