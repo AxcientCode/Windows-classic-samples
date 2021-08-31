@@ -738,7 +738,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 
             WCHAR volume_path_name[MAX_PATH];
             BOOL supported = TRUE;
-            BOOL bWorked = ::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH);
+            ::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH);
 
             HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
 
