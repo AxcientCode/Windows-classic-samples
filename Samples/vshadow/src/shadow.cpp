@@ -13,6 +13,7 @@
 
 // Main header
 #include "stdafx.h"
+#include <vsserror.h>
 
 
 
@@ -617,7 +618,6 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             return 0;
         }
 #endif
-
         // Perform a support check
         if (MatchArgument(arguments[argIndex], L"isup")) //wsSnapIdDest
         {
@@ -629,7 +629,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             WCHAR volume_path_name[MAX_PATH];
             BOOL supported = TRUE;
 
-            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH == FALSE)
+            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH == FALSE))
             {
                 return short(VSS_E_MISSING_DISK);
             }
@@ -640,7 +640,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             auto trunked = short(is_supported_result);
 
             ft.WriteLine(result_phrase, supported, trunked);
-            if (!supported)
+            if (supported == FALSE)
             {
                 return short(VSS_E_VOLUME_NOT_SUPPORTED);
             }
