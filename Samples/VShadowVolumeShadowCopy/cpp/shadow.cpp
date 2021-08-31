@@ -744,10 +744,10 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
                 return short(VSS_E_MISSING_DISK);
             }
 
-            HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
+            const HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
 
             const wstring result_phrase = L"\nSupported check is done, supported: %i, enum value: %i";
-            auto trunked = short(is_supported_result);
+            const auto trunked = short(is_supported_result);
 
             ft.WriteLine(result_phrase, supported, trunked);
             if (supported == FALSE)
