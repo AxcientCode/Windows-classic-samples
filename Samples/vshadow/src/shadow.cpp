@@ -643,7 +643,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             ft.WriteLine(result_phrase, supported, trunked);
             if (!supported)
             {
-                return short(VSS_E_VOLUME_NOT_SUPPORTED);
+                return short(VSS_E_MISSING_DISK);
             }
             return trunked;
         }
