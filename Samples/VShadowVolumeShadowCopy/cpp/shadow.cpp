@@ -757,6 +757,23 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             return trunked;
         }
 
+        // Set shadow storage area unlimited
+        if (MatchArgument(arguments[argIndex], L"unlimstor"))
+        {
+            ft.WriteLine(L"(Started changing max size of storage to unlimited)");
+
+            // Initialize the VSS client
+            m_vssClient.Initialize(VSS_CTX_BACKUP);
+
+            WCHAR volume_path_name[MAX_PATH];
+            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH) == FALSE)
+            {
+                return short(VSS_E_MISSING_DISK);
+            }
+
+            return m_vssClient.SetShadowSpaceUnlimited(volume_path_name);
+        }
+
         // Perform a restore
         if (MatchArgument(arguments[argIndex], L"r", xmlBackupComponentsDoc))
         {
@@ -1142,6 +1159,7 @@ void CommandLineParser::PrintUsage()
         L"  -ds={SnapID}                    - Deletes this shadow copy\n"
         L"  -i={file.xml}                   - Transportable shadow copy import\n"        
         L"  -isup path                      - Check if volume path is supported by VSS\n"
+        L"  -unlimstor path                 - Sets maximum shadow storage space unlimited for a given volume\n"
         L"  -b={SnapSetID}                  - Break the given shadow set into read-only volumes\n"
         L"  -bw={SnapSetID}                 - Break the shadow set into writable volumes\n"
         L"  -bex={SnapSetID}                - Break using BreakSnapshotSetEx and flags, see options for available flags\n"

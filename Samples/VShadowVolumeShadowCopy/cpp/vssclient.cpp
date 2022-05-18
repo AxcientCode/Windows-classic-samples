@@ -124,6 +124,53 @@ HRESULT VssClient::IsVolumeSupported(VSS_PWSZ pwszVolumeName, BOOL* pbSupportedB
     return m_pVssObject->IsVolumeSupported(GUID_NULL, pwszVolumeName, pbSupportedByThisProvider);
 }
 
+HRESULT VssClient::SetShadowSpaceUnlimited(VSS_PWSZ volume_name)
+{
+    FunctionTracer ft(DBG_INFO);
+
+    const HRESULT ALREADY_SET = 0x20000000;
+    HRESULT result = ALREADY_SET;
+
+    CComPtr<IVssDifferentialSoftwareSnapshotMgmt> vss_diff_mgmt;
+    CComPtr<IVssSnapshotMgmt> vss_mgmt;
+
+    CHECK_COM(vss_mgmt.CoCreateInstance(
+        CLSID_VssSnapshotMgmt,
+        nullptr,
+        CLSCTX_ALL));
+
+    CHECK_COM(vss_mgmt->GetProviderMgmtInterface(
+        VSS_SWPRV_ProviderId,
+        IID_IVssDifferentialSoftwareSnapshotMgmt,
+        reinterpret_cast<IUnknown**>(&vss_diff_mgmt)));
+
+    CComPtr<IVssEnumMgmtObject> enum_vss;
+    CHECK_COM(vss_diff_mgmt->QueryDiffAreasForVolume(volume_name, &enum_vss));
+
+    while (true)
+    {
+        VSS_MGMT_OBJECT_PROP class_object;
+        VSS_DIFF_AREA_PROP& diff_area = class_object.Obj.DiffArea;
+        ULONG ret = 0;
+        enum_vss->Next(1, &class_object, &ret);
+        // End of the list
+        if (ret == 0)
+        {
+            break;
+        }
+
+        // -1 is used for unlimited storage max size.
+        if (diff_area.m_llMaximumDiffSpace != -1)
+        {
+            result = vss_diff_mgmt->ChangeDiffAreaMaximumSize(diff_area.m_pwszVolumeName, diff_area.m_pwszDiffAreaVolumeName, -1);;
+        }
+        CoTaskMemFree(diff_area.m_pwszDiffAreaVolumeName);
+        CoTaskMemFree(diff_area.m_pwszVolumeName);
+    }
+
+    return result;
+}
+
 // Waits for the completion of the asynchronous operation
 void VssClient::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
 {

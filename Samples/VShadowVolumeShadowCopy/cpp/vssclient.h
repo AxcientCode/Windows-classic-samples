@@ -41,6 +41,9 @@ public:
         BOOL* pbSupportedByThisProvider
     );
 
+    // Sets diff areas maximum size unlimited for a given volume
+    HRESULT SetShadowSpaceUnlimited(VSS_PWSZ volume_name);
+
     //
     //  Shadow copy creation related methods
     //
