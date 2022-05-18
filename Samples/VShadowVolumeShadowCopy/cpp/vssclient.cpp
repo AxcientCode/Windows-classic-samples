@@ -147,10 +147,10 @@ HRESULT VssClient::SetShadowSpaceUnlimited(VSS_PWSZ volume_name)
     CComPtr<IVssEnumMgmtObject> enum_vss;
     CHECK_COM(vss_diff_mgmt->QueryDiffAreasForVolume(volume_name, &enum_vss));
 
-    VSS_MGMT_OBJECT_PROP class_object;
-    VSS_DIFF_AREA_PROP& diff_area = class_object.Obj.DiffArea;
     while (true)
     {
+        VSS_MGMT_OBJECT_PROP class_object;
+        VSS_DIFF_AREA_PROP& diff_area = class_object.Obj.DiffArea;
         ULONG ret = 0;
         enum_vss->Next(1, &class_object, &ret);
         // End of the list
