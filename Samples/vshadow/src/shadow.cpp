@@ -855,6 +855,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 					ft.WriteLine(L"- Reason: %S", getCurrentExceptionDescription().c_str());
 					ft.WriteLine(L"- Ensuring that any half-created VSS snapshot gets deleted...");
 					m_vssClient.DeleteLatestSnapshotSet(true);
+					ft.WriteLine(L"- Half-created snapshot is deleted");
 				}
 				catch (...)
 				{
