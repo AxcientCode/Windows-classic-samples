@@ -94,7 +94,7 @@ std::string getCurrentExceptionDescription(const std::exception_ptr& ex = std::c
 	}
 	catch (...)
 	{
-		return "who knows";
+		return "unknown issue";
 	}
 }
 
@@ -852,14 +852,14 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 				try
 				{
 					ft.WriteLine(L"\nERROR: Failed to fully create snapshot");
-					ft.WriteLine(L"- Reason: %s", getCurrentExceptionDescription());
+					ft.WriteLine(L"- Reason: %S", getCurrentExceptionDescription().c_str());
 					ft.WriteLine(L"- Ensuring that any half-created VSS snapshot gets deleted...");
 					m_vssClient.DeleteLatestSnapshotSet(true);
 				}
 				catch (...)
 				{
 					ft.WriteLine(L"\nERROR: Failed to delete latest snapshot set");
-					ft.WriteLine(L"- Reason: %s", getCurrentExceptionDescription());
+					ft.WriteLine(L"- Reason: %S", getCurrentExceptionDescription().c_str());
 				}
 				// It's important to rethrow the exception so normal error handling continues as before
 				throw;
