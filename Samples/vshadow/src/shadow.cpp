@@ -69,6 +69,8 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
     }
 }
 
+// Try to rethrow caught exception and return it's description
+// Should be used for huge try blocks where we expect a different exceptions thrown
 std::string getCurrentExceptionDescription(const std::exception_ptr& ex = std::current_exception())
 {
 	if (ex == nullptr)
