@@ -69,6 +69,36 @@ extern "C" int __cdecl wmain(__in int argc, __in_ecount(argc) WCHAR ** argv)
     }
 }
 
+// Try to rethrow caught exception and return it's description
+// Should be used for huge try blocks where we expect a different exceptions thrown
+std::string getCurrentExceptionDescription(const std::exception_ptr& ex = std::current_exception())
+{
+	if (ex == nullptr)
+	{
+		return "unknown issue";
+	}
+
+	try
+	{
+		std::rethrow_exception(ex);
+	}
+	catch (const std::exception& e)
+	{
+		return e.what();
+	}
+	catch (const std::string& e)
+	{
+		return e;
+	}
+	catch (const char* e)
+	{
+		return e;
+	}
+	catch (...)
+	{
+		return "unknown issue";
+	}
+}
 
 //
 //  Main routine
@@ -816,8 +846,9 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 						ExecCommand(execCommand);
 
 				}
-				catch(HRESULT)
+				catch (HRESULT)
 				{
+					ft.WriteLine(L"\nERROR: Failed to generate management scripts or execute custom command '%s'", stringFileName.c_str());
 					// Mark backup failure and exit
 					if ((dwContext & VSS_VOLSNAP_ATTR_NO_WRITERS) == 0)
 						m_vssClient.BackupComplete(false);
@@ -839,10 +870,17 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 			{
 				try
 				{
-					ft.WriteLine(L"\nFailed to fully create VSS snapshot, so ensuring that any half-created VSS snapshot gets deleted...");
+					ft.WriteLine(L"\nERROR: Failed to fully create snapshot");
+					ft.WriteLine(L"- Reason: %S", getCurrentExceptionDescription().c_str());
+					ft.WriteLine(L"- Ensuring that any half-created VSS snapshot gets deleted...");
 					m_vssClient.DeleteLatestSnapshotSet(true);
+					ft.WriteLine(L"- Half-created snapshot is deleted");
 				}
-				catch (...) {}
+				catch (...)
+				{
+					ft.WriteLine(L"\nERROR: Failed to delete latest snapshot set");
+					ft.WriteLine(L"- Reason: %S", getCurrentExceptionDescription().c_str());
+				}
 				// It's important to rethrow the exception so normal error handling continues as before
 				throw;
 			}
