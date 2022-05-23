@@ -804,6 +804,9 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             vector<wstring> volumeList; 
             volumeList.push_back(GetUniqueVolumeNameForPath(arguments[argIndex]));
 
+            std::wstring volumes_for_snapshots;
+            volumes_for_snapshots += arguments[argIndex];
+
             // Process the rest of the arguments
             for(unsigned i = argIndex + 1; i < arguments.size(); i++)
             {
@@ -819,6 +822,9 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 
                 // Add the volume to the list
                 volumeList.push_back(GetUniqueVolumeNameForPath(arguments[i]));
+
+                volumes_for_snapshots += L", ";
+                volumes_for_snapshots += arguments[i];
             }
             
             // Initialize the VSS client
@@ -873,6 +879,7 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
 					ft.WriteLine(L"\nERROR: Failed to fully create snapshot");
 					ft.WriteLine(L"- Reason: %S", getCurrentExceptionDescription().c_str());
 					ft.WriteLine(L"- Ensuring that any half-created VSS snapshot gets deleted...");
+					ft.WriteLine(L"- Volumes list: %s", volumes_for_snapshots.c_str());
 					m_vssClient.DeleteLatestSnapshotSet(true);
 					ft.WriteLine(L"- Half-created snapshot is deleted");
 				}
