@@ -50,7 +50,8 @@ bool GetAllocationBitmap(HANDLE hVolume, CChunkBitmap *pBitmap, CHUNK_BITMAP_SET
                                   &dwBytesReturned,         // number of bytes returned
                                   NULL);
 
-        if (bResult || (!bResult && GetLastError() == ERROR_MORE_DATA)) {
+        if (bResult || (!bResult && GetLastError() == ERROR_MORE_DATA)) 
+        {
             i64CopyStartingIndex = lpOutBuffer->StartingLcn.QuadPart;  // copy start offset in bit index
             i64CopyLength = dwBytesReturned - dwOutHeaderSize;         // number of bitmap bytes to copy
 
@@ -64,7 +65,15 @@ bool GetAllocationBitmap(HANDLE hVolume, CChunkBitmap *pBitmap, CHUNK_BITMAP_SET
 
             sliBuffer.StartingLcn.QuadPart += i64CopyLength * 8LL;
 
-            if (bResult) break;
+            if (bResult) 
+            {
+                break;
+            }
+        }
+        else
+        {
+            _tprintf(L"DeviceIoControl failed for FSCTL_GET_VOLUME_BITMAP. (0x%08lx)\n", GetLastError());
+            break;
         }
     }
 
