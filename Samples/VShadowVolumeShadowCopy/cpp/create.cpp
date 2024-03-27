@@ -114,6 +114,38 @@ void VssClient::AddToSnapshotSet(vector<wstring> volumeList)
     }
 }
 
+HRESULT VssClient::CanBeInSnapshotSet(vector<wstring> volumeList)
+{
+    FunctionTracer ft(DBG_INFO);
+
+    HRESULT result;
+
+    VSS_ID setID = GUID_NULL;
+    // DeleteSnapshotSet fails if we only force the execute first part of it
+    // This is why I don't call that function at the end
+    result = m_pVssObject->StartSnapshotSet(&setID);
+    if (FAILED(result))
+    {
+        ft.WriteLine(L"Failed to start the snapshot set");
+    }
+
+    for (unsigned i = 0; i < volumeList.size(); i++)
+    {
+        wstring volume = volumeList[i];
+        ft.WriteLine(L"- Adding volume %s [%s] to the shadow set...",
+            volume.c_str(),
+            GetDisplayNameForVolume(volume).c_str());
+
+        VSS_ID snapshotID;
+        // force the undocumented, internal function 'CheckForVolumeDependencyRelationship' to be called
+        // without snapshot any additional context
+        result = m_pVssObject->AddToSnapshotSet((LPWSTR)volume.c_str(), m_providerId, &snapshotID);
+        if (FAILED(result)) {
+            return result;
+        }
+    }
+}
+
 
 
 // Effectively creating the shadow (calling DoSnapshotSet)

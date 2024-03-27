@@ -70,6 +70,9 @@ public:
 
     // Add volumes to the shadow copy set
     void AddToSnapshotSet(vector<wstring> volumeList);
+
+    // Check whether it can be in a snapshot set
+    HRESULT CanBeInSnapshotSet(vector<wstring> volumeList);
     
     // Effectively creating the shadow copy (calling DoSnapshotSet)
     void DoSnapshotSet();

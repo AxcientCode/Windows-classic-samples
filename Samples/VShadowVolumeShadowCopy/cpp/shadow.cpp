@@ -739,21 +739,36 @@ int CommandLineParser::MainRoutine(vector<wstring> arguments)
             WCHAR volume_path_name[MAX_PATH];
             BOOL supported = TRUE;
 
-            if (::GetVolumePathName(arguments[1].c_str(), volume_path_name, MAX_PATH) == FALSE)
+            vector<wstring> volumeList;
+
+            short trunked = 0;
+            for (unsigned i = argIndex + 1; i < arguments.size(); ++i)
             {
-                return short(VSS_E_MISSING_DISK);
+                if (::GetVolumePathName(arguments[i].c_str(), volume_path_name, MAX_PATH) == FALSE)
+                {
+                    return short(VSS_E_MISSING_DISK);
+                }
+                ft.WriteLine(L"Converted, given path: %s, volume path: %s", arguments[i].c_str(), volume_path_name);
+
+                const HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
+                trunked = short(is_supported_result);
+
+                ft.WriteLine(L"Supported check is done, supported: %i, enum value: %i", supported, trunked);
+                if (supported == FALSE)
+                {
+                    return short(VSS_E_VOLUME_NOT_SUPPORTED);
+                }
+
+                volumeList.push_back(GetUniqueVolumeNameForPath(arguments[i], true));
             }
 
-            const HRESULT is_supported_result = m_vssClient.IsVolumeSupported(volume_path_name, &supported);
-
-            const wstring result_phrase = L"\nSupported check is done, supported: %i, enum value: %i";
-            const auto trunked = short(is_supported_result);
-
-            ft.WriteLine(result_phrase, supported, trunked);
-            if (supported == FALSE)
+            const HRESULT set_check_result = m_vssClient.CanBeInSnapshotSet(volumeList);
+            if (FAILED(set_check_result))
             {
-                return short(VSS_E_VOLUME_NOT_SUPPORTED);
+                ft.WriteLine(L"Failed to include all the volumes in a snapshot queue set, error: %08X", set_check_result);
+                return short(set_check_result);
             }
+
             return trunked;
         }
 
