@@ -121,8 +121,8 @@ HRESULT VssClient::CanBeInSnapshotSet(vector<wstring> volumeList)
     HRESULT result;
 
     VSS_ID setID = GUID_NULL;
-    // DeleteSnapshotSet fails if we only force the execute first part of it
-    // This is why I don't call that function at the end
+    // NOTE: HT:    DeleteSnapshotSet fails, if we only force the execute first part of it
+    //              This is why I don't call that function at the end
     result = m_pVssObject->StartSnapshotSet(&setID);
     if (FAILED(result))
     {
@@ -137,8 +137,8 @@ HRESULT VssClient::CanBeInSnapshotSet(vector<wstring> volumeList)
             GetDisplayNameForVolume(volume).c_str());
 
         VSS_ID snapshotID;
-        // force the undocumented, internal function 'CheckForVolumeDependencyRelationship' to be called
-        // without snapshot any additional context
+        // NOTE: HT:    force the undocumented, internal function 'CheckForVolumeDependencyRelationship' to be called
+        //              without any additional snapshot context objects
         result = m_pVssObject->AddToSnapshotSet((LPWSTR)volume.c_str(), m_providerId, &snapshotID);
         if (FAILED(result)) {
             return result;
